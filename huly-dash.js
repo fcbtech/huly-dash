@@ -5,7 +5,14 @@ const { createConnection } = require('./src/connection')
 const { fetchVelocity, avgPtsPerDay } = require('./src/fetchers/velocity')
 const { fetchWorkload } = require('./src/fetchers/workload')
 const { fetchMilestones } = require('./src/fetchers/milestones')
-const { renderAll, renderVelocity, renderWorkload, renderMilestones } = require('./src/renderers/terminal')
+const { fetchPipeline } = require('./src/fetchers/pipeline')
+const { fetchBreakdown } = require('./src/fetchers/breakdown')
+const { fetchQuality } = require('./src/fetchers/quality')
+const { fetchTagMap } = require('./src/fetchers/tags')
+const {
+  renderAll, renderVelocity, renderWorkload, renderMilestones,
+  renderPipeline, renderBreakdown, renderQuality
+} = require('./src/renderers/terminal')
 
 program
   .name('huly-dash')
@@ -54,19 +61,64 @@ program
   })
 
 program
+  .command('pipeline')
+  .description('Show issue pipeline (Dev → QA → UAT → Release)')
+  .action(async () => {
+    const client = await connect(program.opts())
+    try {
+      const data = await fetchPipeline(client)
+      renderPipeline(data)
+    } finally {
+      await client.close()
+    }
+  })
+
+program
+  .command('breakdown')
+  .description('Show effort allocation by issue category')
+  .option('--days <n>', 'Lookback window for closed section', '30')
+  .action(async (opts) => {
+    const client = await connect(program.opts())
+    try {
+      const data = await fetchBreakdown(client, { days: parseInt(opts.days, 10) })
+      renderBreakdown(data, { days: parseInt(opts.days, 10) })
+    } finally {
+      await client.close()
+    }
+  })
+
+program
+  .command('quality')
+  .description('Show developer quality and rework metrics')
+  .option('--days <n>', 'Lookback window', '30')
+  .action(async (opts) => {
+    const client = await connect(program.opts())
+    try {
+      const data = await fetchQuality(client, { days: parseInt(opts.days, 10) })
+      renderQuality(data)
+    } finally {
+      await client.close()
+    }
+  })
+
+program
   .command('all')
-  .description('Show all dashboards (velocity + workload + milestones)')
-  .option('--days <n>', 'Lookback window for velocity', '30')
+  .description('Show all dashboards')
+  .option('--days <n>', 'Lookback window', '30')
   .action(async (opts) => {
     const days = parseInt(opts.days, 10)
     const client = await connect(program.opts())
     try {
-      const velocity = await fetchVelocity(client, { days })
+      const tagMap = await fetchTagMap(client)
+      const velocity = await fetchVelocity(client, { days, tagMap })
       const workload = await fetchWorkload(client)
       const velocityAvg = avgPtsPerDay(velocity, days)
       const milestones = await fetchMilestones(client, { avgPtsPerDayOverride: velocityAvg })
+      const pipeline = await fetchPipeline(client)
+      const breakdown = await fetchBreakdown(client, { days, tagMap })
+      const quality = await fetchQuality(client, { days, tagMap })
       renderAll(
-        { velocity, workload, milestones },
+        { velocity, workload, milestones, pipeline, breakdown, quality },
         { days, workspace: resolveWorkspace(program.opts()) }
       )
     } finally {
