@@ -1,39 +1,33 @@
 const tracker = require('@hcengineering/tracker').default
 const task = require('@hcengineering/task').default
 const core = require('@hcengineering/core').default
+const { fetchTagMap, categorizeIssue } = require('./tags')
 
-/**
- * Fetch velocity data: issues closed within the window, grouped by week, summed by estimation.
- * @param {object} client - Huly PlatformClient
- * @param {object} options
- * @param {number} options.days - lookback window in days (default 30)
- * @returns {Promise<Array<{weekLabel: string, ptsClosed: number, issuesClosed: number, trend: string|null}>>}
- */
 async function fetchVelocity (client, options = {}) {
   const days = options.days || 30
   const cutoff = Date.now() - days * 24 * 60 * 60 * 1000
 
-  // Get all statuses to find which ones are in the "Won" (completed) category
   const allStatuses = await client.findAll(core.class.Status, {})
   const wonStatusIds = new Set(
     allStatuses
       .filter((s) => s.category === task.statusCategory.Won)
       .map((s) => s._id)
   )
+  const pausedStatusId = allStatuses.find((s) => s.name === 'Paused')?._id
 
-  // Fetch issues that are done and modified within the window
   const issues = await client.findAll(tracker.class.Issue, {
-    isDone: true,
-    modifiedOn: { $gte: cutoff }
+    isDone: true
   })
 
-  // Filter to only issues whose status is actually in Won category
-  const closedIssues = issues.filter((i) => wonStatusIds.has(i.status))
+  const closedIssues = issues.filter(
+    (i) => wonStatusIds.has(i.status) && i.closedAt && i.closedAt >= cutoff
+  )
 
-  // Group by calendar week
-  const weeks = groupByWeek(closedIssues, cutoff, days)
+  const tagMap = options.tagMap || await fetchTagMap(client)
+  const pauseMap = await fetchPauseTimes(client, closedIssues, pausedStatusId)
 
-  // Compute trend markers
+  const weeks = groupByWeek(closedIssues, cutoff, tagMap, pauseMap)
+
   const maxPts = Math.max(...weeks.map((w) => w.ptsClosed), 0)
   const minPts = Math.min(...weeks.map((w) => w.ptsClosed), Infinity)
 
@@ -47,8 +41,43 @@ async function fetchVelocity (client, options = {}) {
   }))
 }
 
-function groupByWeek (issues, cutoff, days) {
-  // Build week buckets from cutoff to now
+async function fetchPauseTimes (client, issues, pausedStatusId) {
+  const pauseMap = new Map()
+  if (!pausedStatusId) return pauseMap
+
+  for (const issue of issues) {
+    const txs = await client.findAll(core.class.TxUpdateDoc, {
+      objectId: issue._id
+    })
+    const statusTxs = txs
+      .filter((tx) => tx.operations && tx.operations.status)
+      .sort((a, b) => a.modifiedOn - b.modifiedOn)
+
+    let pausedSince = null
+    let totalPaused = 0
+
+    for (const tx of statusTxs) {
+      if (tx.operations.status === pausedStatusId) {
+        pausedSince = tx.modifiedOn
+      } else if (pausedSince != null) {
+        totalPaused += tx.modifiedOn - pausedSince
+        pausedSince = null
+      }
+    }
+
+    if (pausedSince != null && issue.closedAt) {
+      totalPaused += issue.closedAt - pausedSince
+    }
+
+    if (totalPaused > 0) {
+      pauseMap.set(issue._id, totalPaused)
+    }
+  }
+
+  return pauseMap
+}
+
+function groupByWeek (issues, cutoff, tagMap, pauseMap) {
   const buckets = []
   const now = Date.now()
   let weekStart = getMonday(new Date(cutoff))
@@ -61,28 +90,40 @@ function groupByWeek (issues, cutoff, days) {
       end: Math.min(weekEnd.getTime(), now),
       weekLabel: formatWeekLabel(weekStart, weekEnd),
       ptsClosed: 0,
-      issuesClosed: 0
+      issuesClosed: 0,
+      pausedMs: 0,
+      byCategory: {}
     })
     weekStart = new Date(weekStart)
     weekStart.setDate(weekStart.getDate() + 7)
   }
 
-  // Assign issues to buckets
   for (const issue of issues) {
-    const ts = issue.modifiedOn
+    const ts = issue.closedAt
     for (const bucket of buckets) {
       if (ts >= bucket.start && ts <= bucket.end + 24 * 60 * 60 * 1000) {
-        bucket.ptsClosed += issue.estimation || 0
+        const est = issue.estimation || 0
+        bucket.ptsClosed += est
         bucket.issuesClosed += 1
+        bucket.pausedMs += pauseMap.get(issue._id) || 0
+
+        const category = categorizeIssue(tagMap.get(issue._id))
+        if (!bucket.byCategory[category]) {
+          bucket.byCategory[category] = { pts: 0, count: 0 }
+        }
+        bucket.byCategory[category].pts += est
+        bucket.byCategory[category].count += 1
         break
       }
     }
   }
 
-  return buckets.map(({ weekLabel, ptsClosed, issuesClosed }) => ({
+  return buckets.map(({ weekLabel, ptsClosed, issuesClosed, pausedMs, byCategory }) => ({
     weekLabel,
     ptsClosed,
-    issuesClosed
+    issuesClosed,
+    pausedDays: Math.round((pausedMs / (24 * 60 * 60 * 1000)) * 10) / 10,
+    byCategory
   }))
 }
 
@@ -100,12 +141,6 @@ function formatWeekLabel (start, end) {
   return `${fmt(start)}–${fmt(end)}`
 }
 
-/**
- * Compute average points per day from velocity data.
- * @param {Array} velocityData - output of fetchVelocity
- * @param {number} days - window size
- * @returns {number}
- */
 function avgPtsPerDay (velocityData, days) {
   const totalPts = velocityData.reduce((sum, w) => sum + w.ptsClosed, 0)
   return days > 0 ? totalPts / days : 0
