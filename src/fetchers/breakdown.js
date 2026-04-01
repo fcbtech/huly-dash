@@ -26,7 +26,7 @@ async function fetchBreakdown (client, options = {}) {
     isDone: true
   })
   const closedIssues = allIssues.filter(
-    (i) => wonStatusIds.has(i.status) && i.closedAt && i.closedAt >= cutoff
+    (i) => wonStatusIds.has(i.status) && (i.closedAt || i.modifiedOn) >= cutoff
   )
 
   return {

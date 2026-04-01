@@ -19,12 +19,20 @@ async function fetchVelocity (client, options = {}) {
     isDone: true
   })
 
-  const closedIssues = issues.filter(
-    (i) => wonStatusIds.has(i.status) && i.closedAt && i.closedAt >= cutoff
-  )
+  // Use closedAt when available (GitHub PRs), fall back to modifiedOn (regular issues)
+  const closedIssues = issues
+    .filter((i) => wonStatusIds.has(i.status))
+    .filter((i) => {
+      const closeTime = i.closedAt || i.modifiedOn
+      return closeTime >= cutoff
+    })
+    .map((i) => ({ ...i, _closeTime: i.closedAt || i.modifiedOn }))
 
   const tagMap = options.tagMap || await fetchTagMap(client)
-  const pauseMap = await fetchPauseTimes(client, closedIssues, pausedStatusId)
+  // Pause calculation is expensive (1 API call per issue). Only run with --pauses flag.
+  const pauseMap = options.includePauses
+    ? await fetchPauseTimes(client, closedIssues, pausedStatusId)
+    : new Map()
 
   const weeks = groupByWeek(closedIssues, cutoff, tagMap, pauseMap)
 
@@ -65,8 +73,9 @@ async function fetchPauseTimes (client, issues, pausedStatusId) {
       }
     }
 
-    if (pausedSince != null && issue.closedAt) {
-      totalPaused += issue.closedAt - pausedSince
+    if (pausedSince != null) {
+      const endTime = issue.closedAt || issue._closeTime || issue.modifiedOn
+      totalPaused += endTime - pausedSince
     }
 
     if (totalPaused > 0) {
@@ -99,7 +108,7 @@ function groupByWeek (issues, cutoff, tagMap, pauseMap) {
   }
 
   for (const issue of issues) {
-    const ts = issue.closedAt
+    const ts = issue._closeTime || issue.closedAt || issue.modifiedOn
     for (const bucket of buckets) {
       if (ts >= bucket.start && ts <= bucket.end + 24 * 60 * 60 * 1000) {
         const est = issue.estimation || 0

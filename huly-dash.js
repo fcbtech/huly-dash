@@ -24,10 +24,11 @@ program
   .command('velocity')
   .description('Show issue velocity (story points closed per week)')
   .option('--days <n>', 'Lookback window in days', '30')
+  .option('--pauses', 'Include pause-aware effective velocity (slower)')
   .action(async (opts) => {
     const client = await connect(program.opts())
     try {
-      const data = await fetchVelocity(client, { days: parseInt(opts.days, 10) })
+      const data = await fetchVelocity(client, { days: parseInt(opts.days, 10), includePauses: opts.pauses })
       renderVelocity(data, { days: parseInt(opts.days, 10), workspace: resolveWorkspace(program.opts()) })
     } finally {
       await client.close()
@@ -105,18 +106,22 @@ program
   .command('all')
   .description('Show all dashboards')
   .option('--days <n>', 'Lookback window', '30')
+  .option('--quality', 'Include quality metrics (slower — queries per-issue transaction history)')
+  .option('--pauses', 'Include pause-aware effective velocity (slower)')
   .action(async (opts) => {
     const days = parseInt(opts.days, 10)
     const client = await connect(program.opts())
     try {
       const tagMap = await fetchTagMap(client)
-      const velocity = await fetchVelocity(client, { days, tagMap })
+      const velocity = await fetchVelocity(client, { days, tagMap, includePauses: opts.pauses })
       const workload = await fetchWorkload(client)
       const velocityAvg = avgPtsPerDay(velocity, days)
       const milestones = await fetchMilestones(client, { avgPtsPerDayOverride: velocityAvg })
       const pipeline = await fetchPipeline(client)
       const breakdown = await fetchBreakdown(client, { days, tagMap })
-      const quality = await fetchQuality(client, { days, tagMap })
+      const quality = opts.quality
+        ? await fetchQuality(client, { days, tagMap })
+        : null
       renderAll(
         { velocity, workload, milestones, pipeline, breakdown, quality },
         { days, workspace: resolveWorkspace(program.opts()) }
