@@ -1,3 +1,6 @@
+if (!globalThis.fetch) {
+  globalThis.fetch = require('node-fetch')
+}
 const { connect } = require('@hcengineering/api-client')
 require('dotenv').config()
 
