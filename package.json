@@ -1,10 +1,10 @@
 {
-  "name": "huly",
+  "name": "huly-dash",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Analytics dashboard for Huly workspaces",
+  "main": "huly-dash.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "node huly-dash.js all"
   },
   "keywords": [],
   "author": "",
@@ -13,38 +13,48 @@
   "bin": {
     "huly-dash": "./huly-dash.js"
   },
-  "overrides": {
+  "resolutions": {
     "@hcengineering/account-client": "0.7.382",
+    "@hcengineering/activity": "0.7.0",
     "@hcengineering/analytics": "0.7.382",
+    "@hcengineering/attachment": "0.7.382",
+    "@hcengineering/calendar": "0.7.0",
+    "@hcengineering/card": "0.7.0",
+    "@hcengineering/chunter": "0.7.382",
     "@hcengineering/client": "0.7.382",
     "@hcengineering/client-resources": "0.7.382",
     "@hcengineering/collaborator-client": "0.7.382",
+    "@hcengineering/contact": "0.7.382",
     "@hcengineering/core": "0.7.382",
     "@hcengineering/measurements": "0.7.382",
+    "@hcengineering/notification": "0.7.382",
     "@hcengineering/platform": "0.7.382",
+    "@hcengineering/preference": "0.7.382",
+    "@hcengineering/rank": "0.7.382",
     "@hcengineering/rpc": "0.7.382",
+    "@hcengineering/setting": "0.7.382",
+    "@hcengineering/tags": "0.7.382",
+    "@hcengineering/task": "0.7.382",
+    "@hcengineering/templates": "0.7.382",
     "@hcengineering/text": "0.7.382",
     "@hcengineering/text-core": "0.7.382",
     "@hcengineering/text-html": "0.7.382",
     "@hcengineering/text-markdown": "0.7.382",
+    "@hcengineering/theme": "0.7.382",
+    "@hcengineering/time": "0.7.0",
+    "@hcengineering/tracker": "0.7.382",
     "@hcengineering/ui": "0.7.382",
     "@hcengineering/view": "0.7.382",
-    "@hcengineering/chunter": "0.7.382",
-    "@hcengineering/attachment": "0.7.382",
-    "@hcengineering/time": "0.7.0",
-    "@hcengineering/tags": "0.7.382",
-    "@hcengineering/preference": "0.7.382",
-    "@hcengineering/notification": "0.7.382",
-    "@hcengineering/rank": "0.7.382",
-    "@hcengineering/theme": "0.7.382",
-    "@hcengineering/templates": "0.7.382",
-    "@hcengineering/card": "0.7.0",
-    "@hcengineering/activity": "0.7.0",
-    "@hcengineering/workbench": "0.7.382",
-    "@hcengineering/setting": "0.7.382"
+    "@hcengineering/workbench": "0.7.382"
   },
   "dependencies": {
     "@hcengineering/api-client": "^0.7.382",
-    "@hcengineering/tracker": "0.7.382"
+    "@hcengineering/contact": "0.7.382",
+    "@hcengineering/task": "0.7.382",
+    "@hcengineering/tracker": "0.7.382",
+    "chalk": "^4.1.2",
+    "cli-table3": "^0.6.3",
+    "commander": "^11.1.0",
+    "dotenv": "^16.3.1"
   }
 }
