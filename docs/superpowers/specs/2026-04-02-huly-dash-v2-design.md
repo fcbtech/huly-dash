@@ -285,6 +285,84 @@ The pause calculation requires fetching transactions per issue. To keep this man
 
 ---
 
+## View E: Developer Quality / Rework
+
+**File:** `src/fetchers/quality.js`
+
+Combines two metrics to measure developer efficiency and code quality as seen through the QA process.
+
+### Metric 1: Bounceback Rate (per developer)
+
+For each developer, examine their issues that reached In Review within the lookback window. Walk `TxUpdateDoc` status transitions and count backward moves (In Review/Done → In Progress/Todo). Report as:
+- **First-pass rate:** % of issues that went straight through without bouncing back
+- **Bounce count:** total bouncebacks across all their issues
+
+### Metric 2: QA Bug Yield + Rework Ratio (per developer)
+
+For parent issues (features/tasks with sub-issues) assigned to a developer, count child issues tagged as bugs (`issue-bug`, `issue-production-bug`, `issue-staging-bug`) that were created after the parent first entered In Review or a QA custom date was set.
+
+Per developer:
+- **Bug yield:** average bugs spawned per parent issue reviewed
+- **Task pts:** total estimation on their parent issues (original work)
+- **Rework pts:** total estimation on bug sub-issues spawned from their tasks during QA
+- **Rework ratio:** `reworkPts / taskPts` as a percentage — captures severity, not just count
+
+### Data Contract
+
+```js
+{
+  developers: [
+    {
+      name: "Himanshu",
+      issuesReviewed: 12,        // issues that reached In Review
+      bouncebacks: 2,            // times sent back to In Progress
+      firstPassRate: 83,         // % (10/12)
+      parentIssues: 5,           // features/tasks with sub-issues
+      taskPts: 60,               // estimation on parent issues
+      qaBugsSpawned: 8,          // bug sub-issues created during/after QA
+      reworkPts: 24,             // estimation on bug sub-issues from QA
+      avgBugYield: 1.6,          // bugs per parent issue
+      reworkRatio: 40            // % — reworkPts/taskPts
+    }
+  ],
+  summary: {
+    teamFirstPassRate: 89,
+    teamAvgBugYield: 1.2,
+    teamReworkRatio: 28,
+    totalBouncebacks: 5,
+    totalQaBugs: 18
+  }
+}
+```
+
+### CLI
+
+```
+huly-dash quality [--days <n>]    # default: 30
+```
+
+### Renderer
+
+```
+◆ Quality  last 30 days · developer rework metrics
+
+  Developer    1st pass    bounces   bug yield      rework ratio
+  Himanshu     83% ████░   2         1.6 bugs/task  40% (24/60 pts)  ⚠
+  Suneet C     100% █████  0         0.8 bugs/task  12% (6/50 pts)
+  Neeraj       75% ███░░   3         2.1 bugs/task  55% (22/40 pts)  ⚠
+  Deveshi      90% ████░   1         1.0 bugs/task  20% (8/40 pts)
+
+  Team: 89% first-pass · 1.2 avg bugs/task · 28% rework ratio
+```
+
+Developers flagged with `⚠` when first-pass rate < 80% OR rework ratio > 40%.
+
+### Performance Note
+
+Like velocity, this fetcher queries transactions per issue. Limited to issues that reached In Review within the lookback window plus their bug sub-issues.
+
+---
+
 ## Updated `all` Command
 
 `huly-dash all` runs all views in sequence:
@@ -294,6 +372,7 @@ The pause calculation requires fetching transactions per issue. To keep this man
 3. Milestones (unchanged)
 4. Pipeline (new)
 5. Breakdown (new)
+6. Quality (new)
 
 ---
 
@@ -304,9 +383,10 @@ The pause calculation requires fetching transactions per issue. To keep this man
 | `src/fetchers/tags.js` | Create — shared tag resolution helper |
 | `src/fetchers/pipeline.js` | Create — pipeline stage detection |
 | `src/fetchers/breakdown.js` | Create — issue type breakdown |
+| `src/fetchers/quality.js` | Create — developer rework metrics |
 | `src/fetchers/velocity.js` | Modify — closedAt, category splits, pause-aware |
-| `src/renderers/terminal.js` | Modify — add renderPipeline, renderBreakdown, update renderVelocity |
-| `huly-dash.js` | Modify — add `pipeline` and `breakdown` commands, update `all` |
+| `src/renderers/terminal.js` | Modify — add renderPipeline, renderBreakdown, renderQuality, update renderVelocity |
+| `huly-dash.js` | Modify — add `pipeline`, `breakdown`, `quality` commands, update `all` |
 
 ---
 
