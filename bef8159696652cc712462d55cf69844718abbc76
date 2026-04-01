@@ -1,0 +1,24 @@
+docs/superpowers/specs/2026-04-02-huly-dash-v2-design.md
+  f677611835680eb7 1-318
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.22",
+  "base_commit_sha": "bef8159696652cc712462d55cf69844718abbc76",
+  "prompts": {
+    "f677611835680eb7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "16386bc8-0235-4caf-b440-b24b6532a77d",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Suneet <suneet@MacBookAir.bbrouter>",
+      "messages": [],
+      "total_additions": 319,
+      "total_deletions": 1,
+      "accepted_lines": 318,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/68b5a72d674b601f6eff15b6995bd1c62113bc90605fc7c862e43ebe31f96204"
+    }
+  }
+}
