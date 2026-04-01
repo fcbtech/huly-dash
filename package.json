@@ -1,0 +1,50 @@
+{
+  "name": "huly",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bin": {
+    "huly-dash": "./huly-dash.js"
+  },
+  "overrides": {
+    "@hcengineering/account-client": "0.7.382",
+    "@hcengineering/analytics": "0.7.382",
+    "@hcengineering/client": "0.7.382",
+    "@hcengineering/client-resources": "0.7.382",
+    "@hcengineering/collaborator-client": "0.7.382",
+    "@hcengineering/core": "0.7.382",
+    "@hcengineering/measurements": "0.7.382",
+    "@hcengineering/platform": "0.7.382",
+    "@hcengineering/rpc": "0.7.382",
+    "@hcengineering/text": "0.7.382",
+    "@hcengineering/text-core": "0.7.382",
+    "@hcengineering/text-html": "0.7.382",
+    "@hcengineering/text-markdown": "0.7.382",
+    "@hcengineering/ui": "0.7.382",
+    "@hcengineering/view": "0.7.382",
+    "@hcengineering/chunter": "0.7.382",
+    "@hcengineering/attachment": "0.7.382",
+    "@hcengineering/time": "0.7.0",
+    "@hcengineering/tags": "0.7.382",
+    "@hcengineering/preference": "0.7.382",
+    "@hcengineering/notification": "0.7.382",
+    "@hcengineering/rank": "0.7.382",
+    "@hcengineering/theme": "0.7.382",
+    "@hcengineering/templates": "0.7.382",
+    "@hcengineering/card": "0.7.0",
+    "@hcengineering/activity": "0.7.0",
+    "@hcengineering/workbench": "0.7.382",
+    "@hcengineering/setting": "0.7.382"
+  },
+  "dependencies": {
+    "@hcengineering/api-client": "^0.7.382",
+    "@hcengineering/tracker": "0.7.382"
+  }
+}
