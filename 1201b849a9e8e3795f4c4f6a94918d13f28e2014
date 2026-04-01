@@ -1,0 +1,24 @@
+docs/superpowers/plans/2026-04-02-huly-dash-v2.md
+  f677611835680eb7 1-1298
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.22",
+  "base_commit_sha": "1201b849a9e8e3795f4c4f6a94918d13f28e2014",
+  "prompts": {
+    "f677611835680eb7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "16386bc8-0235-4caf-b440-b24b6532a77d",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Suneet <suneet@MacBookAir.bbrouter>",
+      "messages": [],
+      "total_additions": 1298,
+      "total_deletions": 0,
+      "accepted_lines": 1298,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/23cf2b775a896cf26f2f656caf026c904d19b46729c5c6ec8971128e874b00dc"
+    }
+  }
+}
