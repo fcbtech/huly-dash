@@ -1,0 +1,24 @@
+huly-dash.js
+  f677611835680eb7 8-14,64-103,106-107,112-113,117-119,121
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.22",
+  "base_commit_sha": "61fa23f5446f0cc09b3c6feefd8ea467620df590",
+  "prompts": {
+    "f677611835680eb7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "16386bc8-0235-4caf-b440-b24b6532a77d",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Suneet <suneet@MacBookAir.bbrouter>",
+      "messages": [],
+      "total_additions": 92,
+      "total_deletions": 18,
+      "accepted_lines": 91,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/069c6fe1595f5c052ec34f63de7b99c19adf839ba794660732d27c0bb13381c0"
+    }
+  }
+}
