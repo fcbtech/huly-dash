@@ -1,0 +1,24 @@
+src/renderers/terminal.js
+  f677611835680eb7 19,21-26,28,35-38,41-43,46,56-58,64-79,162-306
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.22",
+  "base_commit_sha": "8b87651b4f6fc8c887138e9022739a6efcd609f8",
+  "prompts": {
+    "f677611835680eb7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "16386bc8-0235-4caf-b440-b24b6532a77d",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Suneet <suneet@MacBookAir.bbrouter>",
+      "messages": [],
+      "total_additions": 146,
+      "total_deletions": 1,
+      "accepted_lines": 180,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/7f60b0ff314003f9c385b6becbc60e11265593c3af098cb7906e0aea1cdec5dd"
+    }
+  }
+}
