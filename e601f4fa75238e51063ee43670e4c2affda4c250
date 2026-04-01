@@ -1,0 +1,38 @@
+.gitignore
+  f677611835680eb7 1-3
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.22",
+  "base_commit_sha": "e601f4fa75238e51063ee43670e4c2affda4c250",
+  "prompts": {
+    "2df5d9648a000c7b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8d53235d-6354-4fdd-8197-ae6e12a2a626",
+        "model": "claude-sonnet-4-6"
+      },
+      "human_author": "Suneet <suneet@MacBookAir.bbrouter>",
+      "messages": [],
+      "total_additions": 29,
+      "total_deletions": 10,
+      "accepted_lines": 21,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/e4822a6e21b2c293e15e98d407a0bec81d88b99c34ab275c974230fda3fb9c52"
+    },
+    "f677611835680eb7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "16386bc8-0235-4caf-b440-b24b6532a77d",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Suneet <suneet@MacBookAir.bbrouter>",
+      "messages": [],
+      "total_additions": 3,
+      "total_deletions": 0,
+      "accepted_lines": 3,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/addaf56ee422a60a0a18e5ce53c110758ca1d5870ab33e2a2f598142de7579f4"
+    }
+  }
+}
