@@ -1,0 +1,24 @@
+src/fetchers/quality.js
+  f677611835680eb7 1-173
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.22",
+  "base_commit_sha": "d40a428912a1ab56984f6e55e5e44518bb1ac57c",
+  "prompts": {
+    "f677611835680eb7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "16386bc8-0235-4caf-b440-b24b6532a77d",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Suneet <suneet@MacBookAir.bbrouter>",
+      "messages": [],
+      "total_additions": 173,
+      "total_deletions": 0,
+      "accepted_lines": 173,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/9ec1bb9e721ae44a75cc76e989515dfae62a65b4a7de735ba53106221a6106c2"
+    }
+  }
+}
