@@ -1,0 +1,24 @@
+docs/huly-tracking-guidelines.md
+  f677611835680eb7 1-215
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.22",
+  "base_commit_sha": "ca6adf759df8fc24971075d65ae9761daf904938",
+  "prompts": {
+    "f677611835680eb7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "16386bc8-0235-4caf-b440-b24b6532a77d",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Suneet <suneet@MacBookAir.bbrouter>",
+      "messages": [],
+      "total_additions": 215,
+      "total_deletions": 0,
+      "accepted_lines": 215,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/86a33a91e1fa02725938e2e1b5a303599de868bfd1c47d91d45933c736923b63"
+    }
+  }
+}
