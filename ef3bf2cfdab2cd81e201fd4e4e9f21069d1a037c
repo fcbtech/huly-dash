@@ -1,0 +1,26 @@
+bin/huly.ts
+  c944eeb86efa35d8 1
+package.json
+  c944eeb86efa35d8 2,4,20,25-28,53-60
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.22",
+  "base_commit_sha": "ef3bf2cfdab2cd81e201fd4e4e9f21069d1a037c",
+  "prompts": {
+    "c944eeb86efa35d8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4c5eab3e-c570-4a30-ae55-32a81c4ad722",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Suneet <suneet@MacBookAir.bbrouter>",
+      "messages": [],
+      "total_additions": 47,
+      "total_deletions": 37,
+      "accepted_lines": 44,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/f7ce0dce2c9410cbb887d5e67352e7e58cc05e5c9f49f1a391aff425087d44e5"
+    }
+  }
+}
