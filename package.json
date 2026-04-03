@@ -1,9 +1,11 @@
 {
-  "name": "huly",
+  "name": "huly-cli",
   "version": "1.0.0",
-  "description": "",
+  "description": "General-purpose CLI for Huly workspaces",
   "main": "index.js",
   "scripts": {
+    "dev": "tsx bin/huly.ts",
+    "build": "tsup",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -11,15 +13,19 @@
   "license": "ISC",
   "type": "commonjs",
   "bin": {
+    "huly": "./dist/huly.js",
     "huly-dash": "./huly-dash.js"
   },
   "overrides": {
-    "@hcengineering/account-client": "0.7.382",
+    "@hcengineering/account-client": "$@hcengineering/account-client",
     "@hcengineering/analytics": "0.7.382",
     "@hcengineering/client": "0.7.382",
     "@hcengineering/client-resources": "0.7.382",
     "@hcengineering/collaborator-client": "0.7.382",
-    "@hcengineering/core": "0.7.382",
+    "@hcengineering/core": "$@hcengineering/core",
+    "@hcengineering/contact": "$@hcengineering/contact",
+    "@hcengineering/task": "$@hcengineering/task",
+    "@hcengineering/tracker": "$@hcengineering/tracker",
     "@hcengineering/measurements": "0.7.382",
     "@hcengineering/platform": "0.7.382",
     "@hcengineering/rpc": "0.7.382",
@@ -44,7 +50,20 @@
     "@hcengineering/setting": "0.7.382"
   },
   "dependencies": {
-    "@hcengineering/api-client": "^0.7.382",
-    "@hcengineering/tracker": "0.7.382"
+    "@hcengineering/api-client": "0.7.382",
+    "@hcengineering/contact": "0.7.382",
+    "@hcengineering/core": "0.7.382",
+    "@hcengineering/task": "0.7.382",
+    "@hcengineering/tracker": "0.7.382",
+    "chalk": "^4.1.2",
+    "cli-table3": "^0.6.5",
+    "commander": "^12.1.0"
+  },
+  "devDependencies": {
+    "@hcengineering/account-client": "^0.7.382",
+    "@types/node": "^25.5.2",
+    "tsup": "^8.5.1",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.2"
   }
 }
