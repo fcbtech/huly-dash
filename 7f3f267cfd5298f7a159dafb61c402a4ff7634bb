@@ -1,0 +1,24 @@
+docs/superpowers/specs/2026-04-03-huly-cli-design.md
+  6f4eb018f0a5d93b 1-241
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.22",
+  "base_commit_sha": "7f3f267cfd5298f7a159dafb61c402a4ff7634bb",
+  "prompts": {
+    "6f4eb018f0a5d93b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0342c94d-6672-4d79-8f06-7db4d3849978",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Suneet <suneet@MacBookAir.bbrouter>",
+      "messages": [],
+      "total_additions": 241,
+      "total_deletions": 0,
+      "accepted_lines": 241,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/3e02ab798a2aa025b8e8bace92caf78532a5693deb49485a7425031d9d273106"
+    }
+  }
+}
