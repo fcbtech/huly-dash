@@ -1,0 +1,24 @@
+src/lib/issues.ts
+  c944eeb86efa35d8 1-423
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.22",
+  "base_commit_sha": "8f84badc871f126cf079c481c484d7ec3a1663f5",
+  "prompts": {
+    "c944eeb86efa35d8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4c5eab3e-c570-4a30-ae55-32a81c4ad722",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Suneet <suneet@MacBookAir.bbrouter>",
+      "messages": [],
+      "total_additions": 635,
+      "total_deletions": 0,
+      "accepted_lines": 635,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/6839551bc66bd58cf8f517d47517a25d4b19367d9220b163795ed90b18d16070"
+    }
+  }
+}
