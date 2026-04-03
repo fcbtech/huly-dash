@@ -1,0 +1,28 @@
+src/lib/milestones.ts
+  c944eeb86efa35d8 1-138
+src/lib/members.ts
+  c944eeb86efa35d8 1-23
+src/lib/projects.ts
+  c944eeb86efa35d8 1-51
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.22",
+  "base_commit_sha": "1b00e730191b1920ef6b40e1c0128d4c596531c5",
+  "prompts": {
+    "c944eeb86efa35d8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4c5eab3e-c570-4a30-ae55-32a81c4ad722",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Suneet <suneet@MacBookAir.bbrouter>",
+      "messages": [],
+      "total_additions": 0,
+      "total_deletions": 0,
+      "accepted_lines": 212,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/6839551bc66bd58cf8f517d47517a25d4b19367d9220b163795ed90b18d16070"
+    }
+  }
+}
