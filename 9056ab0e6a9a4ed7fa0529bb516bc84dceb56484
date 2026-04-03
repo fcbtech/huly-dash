@@ -1,0 +1,24 @@
+docs/superpowers/plans/2026-04-03-huly-cli.md
+  6f4eb018f0a5d93b 1-2043
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.1.22",
+  "base_commit_sha": "9056ab0e6a9a4ed7fa0529bb516bc84dceb56484",
+  "prompts": {
+    "6f4eb018f0a5d93b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0342c94d-6672-4d79-8f06-7db4d3849978",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Suneet <suneet@MacBookAir.bbrouter>",
+      "messages": [],
+      "total_additions": 2043,
+      "total_deletions": 0,
+      "accepted_lines": 2043,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/c749fbdcc2cc9633444d7cc98343557e1ffa84699358539fdb580b312a94c2f6"
+    }
+  }
+}
