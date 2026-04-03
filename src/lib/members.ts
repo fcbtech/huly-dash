@@ -1,5 +1,5 @@
 import { type PlatformClient } from '@hcengineering/api-client'
-import contact, { type Employee } from '@hcengineering/contact'
+import contact, { type Person } from '@hcengineering/contact'
 import type { MemberRow } from '../types'
 
 function formatName (name: string | undefined): string {
@@ -12,12 +12,12 @@ function formatName (name: string | undefined): string {
 }
 
 export async function listMembers (client: PlatformClient): Promise<MemberRow[]> {
-  const employees = await client.findAll(contact.class.Employee, {})
+  const persons = await client.findAll(contact.class.Person, {})
 
-  return employees.map((emp) => ({
-    name: formatName(emp.name),
-    email: '', // email is stored in channels, not directly on Employee
-    role: emp.role || 'USER',
-    active: emp.active
+  return persons.map((p) => ({
+    name: formatName(p.name),
+    email: '',
+    role: 'member',
+    active: true
   }))
 }

@@ -4,7 +4,7 @@ import tracker, {
   type Milestone,
   IssuePriority
 } from '@hcengineering/tracker'
-import contact, { type Employee } from '@hcengineering/contact'
+import contact, { type Person } from '@hcengineering/contact'
 import { type Ref, type Doc, type DocumentUpdate, SortingOrder } from '@hcengineering/core'
 import {
   buildStatusMap,
@@ -203,7 +203,7 @@ export async function createIssue (
   }
 
   // Resolve assignee
-  let assigneeRef: Ref<Employee> | null = null
+  let assigneeRef: Ref<Person> | null = null
   if (opts.assignee) {
     assigneeRef = await resolveEmployee(client, opts.assignee)
     if (!assigneeRef) {
@@ -377,7 +377,7 @@ async function buildEmployeeMap (
 
   if (assigneeIds.length === 0) return new Map()
 
-  const employees = await client.findAll(contact.class.Employee, {
+  const employees = await client.findAll(contact.class.Person, {
     _id: { $in: assigneeIds as any }
   })
 
@@ -412,12 +412,12 @@ async function buildMilestoneMap (
 async function resolveEmployee (
   client: PlatformClient,
   name: string
-): Promise<Ref<Employee> | null> {
-  const employees = await client.findAll(contact.class.Employee, { active: true })
+): Promise<Ref<Person> | null> {
+  const employees = await client.findAll(contact.class.Person, { active: true })
   const lower = name.toLowerCase()
   const match = employees.find((e) => {
     const formatted = formatName(e.name)?.toLowerCase() || ''
     return formatted.includes(lower) || e.name.toLowerCase().includes(lower)
   })
-  return match ? match._id as Ref<Employee> : null
+  return match ? match._id as Ref<Person> : null
 }

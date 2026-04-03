@@ -12,17 +12,21 @@ export function registerAuthCommand (program: Command): void {
     .description('Login to a Huly workspace')
     .requiredOption('--email <email>', 'Account email')
     .requiredOption('--password <password>', 'Account password')
-    .requiredOption('--workspace <name>', 'Workspace name')
     .option('--url <url>', 'Huly instance URL', 'https://huly.app')
     .action(async (opts) => {
+      const workspace = program.opts().workspace || opts.workspace
+      if (!workspace) {
+        console.error('error: workspace is required. Use --workspace <name> before the auth command.')
+        process.exit(1)
+      }
       try {
         await login({
           url: opts.url,
-          workspace: opts.workspace,
+          workspace,
           email: opts.email,
           password: opts.password
         })
-        console.log(`Logged in to ${opts.workspace} at ${opts.url}`)
+        console.log(`Logged in to ${workspace} at ${opts.url}`)
         console.log(`Config saved to ${getConfigPath()}`)
       } catch (err: any) {
         console.error(`Login failed: ${err.message || err}`)
