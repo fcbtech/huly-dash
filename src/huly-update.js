@@ -166,14 +166,76 @@ async function main () {
         break
       }
 
+      case 'log-time': {
+        // Usage: huly-update log-time ENG-XXXX 2.5 "optional description"
+        const hours = parseFloat(args[2])
+        if (isNaN(hours) || hours <= 0) {
+          console.error('Usage: huly-update log-time ENG-XXXX <hours> ["description"]')
+          process.exit(1)
+        }
+        const desc = args.slice(3).join(' ') || ''
+        const account = await client.getAccount()
+        const employeeId = await resolveEmployee(client, account)
+        await client.addCollection(
+          tracker.class.TimeSpendReport,
+          issue.space,
+          issue._id,
+          tracker.class.Issue,
+          'reports',
+          {
+            value: hours,
+            employee: employeeId,
+            date: Date.now(),
+            description: desc
+          }
+        )
+        console.log('✓ Logged ' + hours + 'h on ENG-' + issueNumber + (desc ? ' (' + desc + ')' : ''))
+        break
+      }
+
+      case 'estimate': {
+        // Usage: huly-update estimate ENG-XXXX 8
+        const pts = parseFloat(args[2])
+        if (isNaN(pts) || pts < 0) {
+          console.error('Usage: huly-update estimate ENG-XXXX <story-points>')
+          process.exit(1)
+        }
+        await client.updateDoc(tracker.class.Issue, issue.space, issue._id, {
+          estimation: pts,
+          remainingTime: pts
+        })
+        console.log('✓ ENG-' + issueNumber + ' estimated at ' + pts + ' pts')
+        break
+      }
+
       default:
         console.error('Unknown command:', command)
-        console.error('Commands: dev-start, in-review, done, qa-start, released, comment')
+        console.error('Commands: dev-start, pr-created, pr-merged, in-review, done, qa-start, released, log-time, estimate, comment')
         process.exit(1)
     }
   } finally {
     await client.close()
   }
+}
+
+async function resolveEmployee (client, account) {
+  const contact = require('@hcengineering/contact').default
+  const persons = await client.findAll(contact.class.Person, {})
+  // Match by social ID from account
+  const socialIds = account.socialIds || []
+  for (const person of persons) {
+    // Person._id is the employee ID if they have the Employee mixin
+    // Check if any social identity matches
+    const socialIdentities = await client.findAll(contact.class.SocialIdentity, {
+      attachedTo: person._id
+    })
+    for (const si of socialIdentities) {
+      if (socialIds.includes(si._id)) {
+        return person._id
+      }
+    }
+  }
+  throw new Error('Could not resolve your employee ID. Make sure your Huly account is linked.')
 }
 
 async function addComment (client, issue, text) {
