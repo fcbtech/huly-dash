@@ -93,27 +93,50 @@ async function main () {
       }
 
       case 'pr-created': {
-        // PR opened — set Dev End Actual, add comment. Status stays In Progress.
-        const prUpdates = { [CUSTOM_FIELDS.devEndActual]: todayMs }
-        await client.updateDoc(tracker.class.Issue, issue.space, issue._id, prUpdates)
-        console.log('✓ ENG-' + issueNumber + ' Dev End Actual set')
-
+        // PR opened — add comment. Status stays In Progress. Dev End set on merge.
         const prIdx2 = args.indexOf('--pr')
         if (prIdx2 !== -1 && args[prIdx2 + 1]) {
           await addComment(client, issue, 'PR opened: ' + args[prIdx2 + 1])
-          console.log('✓ PR comment added')
+          console.log('✓ PR comment added to ENG-' + issueNumber)
+        } else {
+          console.log('✓ ENG-' + issueNumber + ' (no --pr flag, nothing to do)')
         }
         break
       }
 
       case 'pr-merged': {
-        // PR merged — move to In Review (ready for QA), set Dev End Actual if not set
-        const mergeUpdates = { status: STATUS_IDS.inReview }
-        if (!issue[CUSTOM_FIELDS.devEndActual]) {
-          mergeUpdates[CUSTOM_FIELDS.devEndActual] = todayMs
+        // PR merged — set Dev End Actual, move to In Review (ready for QA),
+        // auto-log dev time if Dev Start is set
+        const mergeUpdates = {
+          status: STATUS_IDS.inReview,
+          [CUSTOM_FIELDS.devEndActual]: todayMs
         }
         await client.updateDoc(tracker.class.Issue, issue.space, issue._id, mergeUpdates)
-        console.log('✓ ENG-' + issueNumber + ' → In Review (ready for QA)')
+        console.log('✓ ENG-' + issueNumber + ' → In Review (Dev End Actual set)')
+
+        // Auto-log dev time from Dev Start → now
+        const devStartMs = issue[CUSTOM_FIELDS.devStart]
+        if (devStartMs) {
+          const devHours = Math.round(((todayMs - devStartMs) / (24 * 60 * 60 * 1000)) * 8 * 10) / 10 // working hours (8h/day)
+          if (devHours > 0) {
+            const account = await client.getAccount()
+            const employeeId = await resolveEmployee(client, account)
+            await client.addCollection(
+              tracker.class.TimeSpendReport,
+              issue.space,
+              issue._id,
+              tracker.class.Issue,
+              'reports',
+              {
+                value: devHours,
+                employee: employeeId,
+                date: Date.now(),
+                description: 'Dev time (auto-logged from Dev Start → PR merge)'
+              }
+            )
+            console.log('✓ Auto-logged ' + devHours + 'h dev time (Dev Start → merge)')
+          }
+        }
 
         const prIdx3 = args.indexOf('--pr')
         if (prIdx3 !== -1 && args[prIdx3 + 1]) {
