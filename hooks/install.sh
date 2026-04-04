@@ -4,7 +4,7 @@
 # Usage:
 #   ./install.sh /path/to/your/repo
 #
-# This copies pre-push and post-merge hooks and adds the gh wrapper to your shell.
+# This copies post-commit and post-merge hooks and adds the gh wrapper to your shell.
 
 set -e
 
@@ -21,13 +21,13 @@ HOOKS_DIR="$TARGET_REPO/.git/hooks"
 echo "Installing Huly hooks into $TARGET_REPO..."
 
 # Install git hooks
-cp "$SCRIPT_DIR/pre-push" "$HOOKS_DIR/pre-push"
-chmod +x "$HOOKS_DIR/pre-push"
-echo "  ✓ pre-push hook (branch push → Dev Start + In Progress)"
+cp "$SCRIPT_DIR/post-commit" "$HOOKS_DIR/post-commit"
+chmod +x "$HOOKS_DIR/post-commit"
+echo "  ✓ post-commit hook (first commit → Dev Start + In Progress)"
 
 cp "$SCRIPT_DIR/post-merge" "$HOOKS_DIR/post-merge"
 chmod +x "$HOOKS_DIR/post-merge"
-echo "  ✓ post-merge hook (merge to main → Done)"
+echo "  ✓ post-merge hook (merge to main → In Review for QA)"
 
 echo ""
 echo "To enable the gh pr create wrapper, add this to your ~/.zshrc:"
