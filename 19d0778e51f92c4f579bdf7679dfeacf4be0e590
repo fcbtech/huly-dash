@@ -1,0 +1,32 @@
+hooks/install.sh
+  f677611835680eb7 1-44
+hooks/post-merge
+  f677611835680eb7 1-22
+hooks/pre-push
+  f677611835680eb7 1-27
+hooks/gh-huly-wrapper.sh
+  f677611835680eb7 1-51
+src/huly-update.js
+  f677611835680eb7 1-201
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.5",
+  "base_commit_sha": "19d0778e51f92c4f579bdf7679dfeacf4be0e590",
+  "prompts": {
+    "f677611835680eb7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "16386bc8-0235-4caf-b440-b24b6532a77d",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Suneet",
+      "messages": [],
+      "total_additions": 372,
+      "total_deletions": 27,
+      "accepted_lines": 345,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/b95ea3c4d7d6819e638ae38b07cb7cad8d23c8ea3877e24b0030834cec9e5ef1"
+    }
+  }
+}
