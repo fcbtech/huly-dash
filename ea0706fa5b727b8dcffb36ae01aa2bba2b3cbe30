@@ -1,0 +1,24 @@
+src/huly-update.js
+  f677611835680eb7 96,100-102,108-112,115-139
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.5",
+  "base_commit_sha": "ea0706fa5b727b8dcffb36ae01aa2bba2b3cbe30",
+  "prompts": {
+    "f677611835680eb7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "16386bc8-0235-4caf-b440-b24b6532a77d",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Suneet",
+      "messages": [],
+      "total_additions": 34,
+      "total_deletions": 11,
+      "accepted_lines": 34,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/c59aa116b593a6c5af41cc0ca010712d1360188bf382c9540f9ea8436135c6ea"
+    }
+  }
+}
