@@ -1,0 +1,26 @@
+src/commands/issue.ts
+  c944eeb86efa35d8 20,33
+src/lib/issues.ts
+  c944eeb86efa35d8 8,77,141,143-154
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.5",
+  "base_commit_sha": "bee39e6966e0cfc92d41f6cc83bc38e9a9502782",
+  "prompts": {
+    "c944eeb86efa35d8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "4c5eab3e-c570-4a30-ae55-32a81c4ad722",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Suneet",
+      "messages": [],
+      "total_additions": 17,
+      "total_deletions": 1,
+      "accepted_lines": 17,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/1d6298c6d121eb96ab6b27b8ab64991d98ab6d21a71c116bd2f6ad626ed421cc"
+    }
+  }
+}
