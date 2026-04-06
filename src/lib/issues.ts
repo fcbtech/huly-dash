@@ -5,6 +5,7 @@ import tracker, {
   IssuePriority
 } from '@hcengineering/tracker'
 import contact, { type Person } from '@hcengineering/contact'
+import tags from '@hcengineering/tags'
 import { type Ref, type Doc, type DocumentUpdate, SortingOrder } from '@hcengineering/core'
 import {
   buildStatusMap,
@@ -73,6 +74,7 @@ export interface ListIssuesOptions {
   status?: string
   priority?: string
   milestone?: string
+  label?: string
   limit?: number
 }
 
@@ -136,8 +138,20 @@ export async function listIssues (
   // Resolve milestone labels
   const milestoneMap = await buildMilestoneMap(client, issues)
 
-  // Filter by assignee name (post-query — Huly stores assignee as Ref<Person>)
+  // Filter by label (post-query — labels are stored as TagReference docs)
   let filtered = issues as Issue[]
+  if (opts.label) {
+    const tagRefs = await client.findAll(tags.class.TagReference, {})
+    const lower = opts.label.toLowerCase()
+    const matchingIssueIds = new Set(
+      tagRefs
+        .filter((t) => t.title.toLowerCase().includes(lower))
+        .map((t) => t.attachedTo as string)
+    )
+    filtered = filtered.filter((i) => matchingIssueIds.has(i._id as string))
+  }
+
+  // Filter by assignee name (post-query — Huly stores assignee as Ref<Person>)
   if (opts.assignee) {
     const lower = opts.assignee.toLowerCase()
     filtered = filtered.filter((i) => {

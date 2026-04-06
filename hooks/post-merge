@@ -1,0 +1,22 @@
+#!/bin/bash
+# Git post-merge hook: when a PR branch is merged into main, marks the issue as Done.
+# Detects ENG-XXXX from the merge commit message.
+
+HULY_UPDATE="${HULY_DASH_DIR:-$HOME/Projects/agents/huly}/src/huly-update.js"
+
+branch=$(git symbolic-ref --short HEAD 2>/dev/null)
+if [[ "$branch" != "main" && "$branch" != "master" ]]; then
+  exit 0
+fi
+
+# Extract ENG-XXXX from the last merge commit message
+merge_msg=$(git log -1 --merges --format="%s" 2>/dev/null)
+issue=$(echo "$merge_msg" | grep -oE 'ENG-[0-9]+' | head -1)
+
+if [[ -z "$issue" ]]; then
+  exit 0
+fi
+
+echo "🔗 Huly: setting $issue → In Review (ready for QA)"
+node "$HULY_UPDATE" pr-merged "$issue" 2>/dev/null &
+exit 0

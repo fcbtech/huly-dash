@@ -17,6 +17,7 @@ export function registerIssueCommand (program: Command): void {
     .option('--status <name>', 'Filter by status name')
     .option('--priority <level>', 'Filter by priority (urgent/high/medium/low)')
     .option('--milestone <name>', 'Filter by milestone name')
+    .option('--label <name>', 'Filter by label name')
     .option('--limit <n>', 'Max issues to return', '50')
     .option('--json', 'Output as JSON', false)
     .action(async (opts) => {
@@ -29,6 +30,7 @@ export function registerIssueCommand (program: Command): void {
           status: opts.status,
           priority: opts.priority,
           milestone: opts.milestone,
+          label: opts.label,
           limit: parseInt(opts.limit, 10)
         })
         output(issues, formatIssueList(issues), opts.json)
