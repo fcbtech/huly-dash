@@ -1,0 +1,71 @@
+name: Sync Huly on PR merge
+
+on:
+  pull_request:
+    types: [closed]
+
+jobs:
+  huly-update:
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Extract issue number from branch
+        id: extract
+        run: |
+          BRANCH="${{ github.event.pull_request.head.ref }}"
+          ISSUE=$(echo "$BRANCH" | grep -oE 'ENG-[0-9]+' | head -1)
+          echo "issue=$ISSUE" >> "$GITHUB_OUTPUT"
+          echo "Branch: $BRANCH → Issue: $ISSUE"
+
+      - name: Update Huly ticket
+        if: steps.extract.outputs.issue != ''
+        env:
+          HULY_URL: ${{ secrets.HULY_URL }}
+          HULY_EMAIL: ${{ secrets.HULY_EMAIL }}
+          HULY_PASSWORD: ${{ secrets.HULY_PASSWORD }}
+          HULY_WORKSPACE: ${{ secrets.HULY_WORKSPACE }}
+        run: |
+          npm install @hcengineering/api-client@0.7.382 @hcengineering/tracker@0.7.382 @hcengineering/task@0.7.382 @hcengineering/contact@0.7.382 @hcengineering/chunter@0.7.382 @hcengineering/tags@0.7.382 @hcengineering/core@0.7.382 node-fetch@2 2>/dev/null
+
+          node -e "
+          if (!globalThis.fetch) globalThis.fetch = require('node-fetch');
+          const { connect } = require('@hcengineering/api-client');
+          const tracker = require('@hcengineering/tracker').default;
+          const task = require('@hcengineering/task').default;
+          const core = require('@hcengineering/core').default;
+          const chunter = require('@hcengineering/chunter').default;
+
+          const STATUS_IN_REVIEW = '67a05e0143abf4484b6479d4';
+          const DEV_END_ACTUAL = 'custom69cbdd7cae0caf5c9168a796';
+
+          async function main() {
+            const client = await connect(process.env.HULY_URL, {
+              email: process.env.HULY_EMAIL,
+              password: process.env.HULY_PASSWORD,
+              workspace: process.env.HULY_WORKSPACE
+            });
+
+            const issueNum = parseInt('${{ steps.extract.outputs.issue }}'.replace('ENG-', ''));
+            const issues = await client.findAll(tracker.class.Issue, { number: issueNum });
+            if (issues.length === 0) { console.log('Issue not found'); await client.close(); return; }
+            const issue = issues[0];
+
+            const today = new Date(); today.setHours(0,0,0,0);
+            await client.updateDoc(tracker.class.Issue, issue.space, issue._id, {
+              status: STATUS_IN_REVIEW,
+              [DEV_END_ACTUAL]: today.getTime()
+            });
+            console.log('✓ ' + '${{ steps.extract.outputs.issue }}' + ' → In Review (Dev End Actual set)');
+
+            const prUrl = '${{ github.event.pull_request.html_url }}';
+            const prTitle = '${{ github.event.pull_request.title }}'.replace(/'/g, '');
+            await client.addCollection(
+              chunter.class.ChatMessage, issue.space, issue._id, tracker.class.Issue, 'comments',
+              { message: JSON.stringify({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'PR merged: ' + prUrl + ' — ' + prTitle, marks: [] }] }] }) }
+            );
+            console.log('✓ Merge comment added');
+
+            await client.close();
+          }
+          main().catch(e => { console.error(e.message); process.exit(1); });
+          "
