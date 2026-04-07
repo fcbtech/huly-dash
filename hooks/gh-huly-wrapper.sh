@@ -4,7 +4,7 @@
 #
 # Then use `gh` normally — it intercepts `gh pr create` and updates Huly automatically.
 
-HULY_UPDATE="${HULY_DASH_DIR:-$HOME/Projects/agents/huly}/src/huly-update.js"
+HULY="${HULY_DASH_DIR:-$HOME/Projects/agents/huly}/src/huly.js"
 
 gh() {
   # Pass through to real gh for everything except `pr create`
@@ -40,11 +40,11 @@ _gh_pr_create_with_huly() {
   if [[ -n "$issue" && -n "$pr_url" ]]; then
     echo ""
     echo "🔗 Huly: updating $issue (PR created)"
-    node "$HULY_UPDATE" pr-created "$issue" --pr "$pr_url" 2>/dev/null
+    node "$HULY" pr-created "$issue" --pr "$pr_url" 2>/dev/null
   elif [[ -n "$issue" ]]; then
     echo ""
     echo "🔗 Huly: updating $issue (PR created)"
-    node "$HULY_UPDATE" pr-created "$issue" 2>/dev/null
+    node "$HULY" pr-created "$issue" 2>/dev/null
   fi
 
   return $exit_code

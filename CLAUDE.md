@@ -5,7 +5,7 @@
 huly-dash is a CLI toolkit for Huly workspace analytics and automation. Two tools:
 
 1. **`huly-dash`** — Terminal dashboard showing velocity, workload, milestones, pipeline, breakdown, and quality metrics
-2. **`huly-update`** — CLI to update Huly issues from git hooks and scripts (status changes, time logging, comments)
+2. **`huly`** — CLI to update Huly issues from git hooks and scripts (status changes, time logging, comments)
 
 ## Tech Stack
 
@@ -23,7 +23,7 @@ Two-layer design: fetchers query the Huly API and return plain JS objects; rende
 huly-dash.js              — CLI entry point (commander commands, wires fetchers → renderers)
 src/
   connection.js           — connect to Huly, return client
-  huly-update.js          — standalone CLI for updating issues from hooks
+  huly.js          — standalone CLI for updating issues from hooks
   fetchers/
     tags.js               — shared tag resolution + issue categorization
     velocity.js           — closed issues by week, category splits, pause-aware
@@ -45,7 +45,7 @@ hooks/
 
 These are hardcoded for our Huly workspace and would need updating for other workspaces:
 
-- **Status IDs** in `src/huly-update.js` (`STATUS_IDS` object) — `inReview` and `paused` are workspace-specific
+- **Status IDs** in `src/huly.js` (`STATUS_IDS` object) — `inReview` and `paused` are workspace-specific
 - **Custom field IDs** in `src/fetchers/pipeline.js` (`CUSTOM_FIELDS` object) — these are the SDLC date field IDs
 - **Status IDs** in `src/fetchers/velocity.js` — looks up "Paused" by name, should be safe
 - **GitHub Action** in `.github/workflows/huly-sync.yml` — has hardcoded status and custom field IDs
@@ -82,16 +82,16 @@ node huly-dash.js breakdown --days 30
 node huly-dash.js quality --days 30
 
 # Issue updates
-node src/huly-update.js dev-start ENG-XXXX
-node src/huly-update.js pr-created ENG-XXXX --pr <url>
-node src/huly-update.js pr-merged ENG-XXXX --pr <url>
-node src/huly-update.js in-review ENG-XXXX
-node src/huly-update.js done ENG-XXXX
-node src/huly-update.js qa-start ENG-XXXX
-node src/huly-update.js released ENG-XXXX
-node src/huly-update.js log-time ENG-XXXX 2.5 "description"
-node src/huly-update.js estimate ENG-XXXX 8
-node src/huly-update.js comment ENG-XXXX "message"
+node src/huly.js dev-start ENG-XXXX
+node src/huly.js pr-created ENG-XXXX --pr <url>
+node src/huly.js pr-merged ENG-XXXX --pr <url>
+node src/huly.js in-review ENG-XXXX
+node src/huly.js done ENG-XXXX
+node src/huly.js qa-start ENG-XXXX
+node src/huly.js released ENG-XXXX
+node src/huly.js log-time ENG-XXXX 2.5 "description"
+node src/huly.js estimate ENG-XXXX 8
+node src/huly.js comment ENG-XXXX "message"
 ```
 
 ## Running Tests
@@ -99,7 +99,7 @@ node src/huly-update.js comment ENG-XXXX "message"
 No test suite yet. Smoke test against a live workspace:
 ```bash
 node huly-dash.js all --days 7
-node src/huly-update.js comment ENG-XXXX "test"
+node src/huly.js comment ENG-XXXX "test"
 ```
 
 ## Dependencies Note

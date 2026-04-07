@@ -46,7 +46,7 @@ huly-dash all  ·  workspace: tranzact  ·  2026-04-01
 | `quality` | Developer first-pass QA rate, bug yield, and rework ratio |
 | `all` | Everything above in one view |
 
-### Git Automation (`huly-update`)
+### Git Automation (`huly`)
 
 Automatically updates Huly issues as you work:
 
@@ -151,20 +151,20 @@ node huly-dash.js velocity --pauses
 
 ```bash
 # Status changes
-node src/huly-update.js dev-start ENG-14826
-node src/huly-update.js pr-created ENG-14826 --pr https://github.com/org/repo/pull/123
-node src/huly-update.js pr-merged ENG-14826 --pr https://github.com/org/repo/pull/123
-node src/huly-update.js in-review ENG-14826
-node src/huly-update.js done ENG-14826
-node src/huly-update.js qa-start ENG-14826
-node src/huly-update.js released ENG-14826
+node src/huly.js dev-start ENG-14826
+node src/huly.js pr-created ENG-14826 --pr https://github.com/org/repo/pull/123
+node src/huly.js pr-merged ENG-14826 --pr https://github.com/org/repo/pull/123
+node src/huly.js in-review ENG-14826
+node src/huly.js done ENG-14826
+node src/huly.js qa-start ENG-14826
+node src/huly.js released ENG-14826
 
 # Time tracking
-node src/huly-update.js log-time ENG-14826 2.5 "Code review and testing"
-node src/huly-update.js estimate ENG-14826 8
+node src/huly.js log-time ENG-14826 2.5 "Code review and testing"
+node src/huly.js estimate ENG-14826 8
 
 # Comments
-node src/huly-update.js comment ENG-14826 "Deployed to staging"
+node src/huly.js comment ENG-14826 "Deployed to staging"
 ```
 
 ## Customizing for Your Workspace
@@ -206,8 +206,8 @@ run().catch(console.error)
 
 | File | What | How to find |
 |------|------|-------------|
-| `src/huly-update.js` → `STATUS_IDS.inReview` | In Review status ID | Find "In Review" in status output |
-| `src/huly-update.js` → `STATUS_IDS.paused` | Paused status ID | Find "Paused" in status output |
+| `src/huly.js` → `STATUS_IDS.inReview` | In Review status ID | Find "In Review" in status output |
+| `src/huly.js` → `STATUS_IDS.paused` | Paused status ID | Find "Paused" in status output |
 | `src/fetchers/pipeline.js` → `CUSTOM_FIELDS` | SDLC date field IDs | Find "Dev Start", "QA Start", etc. in custom fields output |
 | `src/fetchers/tags.js` → `TAG_CATEGORIES` | Tag names for categorization | Check your workspace's tags in Huly UI |
 | `.github/workflows/huly-sync.yml` | Status + custom field IDs | Same as above |
@@ -235,7 +235,7 @@ The `@hcengineering` packages are published with `workspace:` protocol in their 
 huly-dash.js              CLI entry point
 src/
   connection.js           Huly API connection
-  huly-update.js          Issue update CLI (used by hooks)
+  huly.js          Issue update CLI (used by hooks)
   fetchers/               Data fetchers (return plain objects)
     tags.js               Shared tag resolution
     velocity.js           Velocity with category splits
