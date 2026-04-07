@@ -231,9 +231,81 @@ async function main () {
         break
       }
 
+      case 'create-sub': {
+        // Usage: huly-update create-sub ENG-XXXX "Title" [--estimate N] [--assignee me]
+        const title = args[2]
+        if (!title) {
+          console.error('Usage: huly-update create-sub ENG-XXXX "title" [--estimate N] [--assignee me]')
+          process.exit(1)
+        }
+
+        const estIdx = args.indexOf('--estimate')
+        const estimation = estIdx !== -1 ? parseFloat(args[estIdx + 1]) || 0 : 0
+
+        const assignIdx = args.indexOf('--assignee')
+        let assignee = null
+        if (assignIdx !== -1 && args[assignIdx + 1] === 'me') {
+          const account = await client.getAccount()
+          assignee = await resolveEmployee(client, account)
+        } else if (issue.assignee) {
+          assignee = issue.assignee
+        }
+
+        // Get project to increment sequence
+        const projects = await client.findAll(tracker.class.Project, { _id: issue.space })
+        const project = projects[0]
+        const newNumber = project.sequence + 1
+
+        const statuses = await client.findAll(core.class.Status, {})
+        const backlogId = statuses.find((s) => s.name === 'Backlog' && s.ofAttribute === 'tracker:attribute:IssueStatus')?._id
+
+        await client.addCollection(
+          tracker.class.Issue,
+          issue.space,
+          issue._id,
+          tracker.class.Issue,
+          'subIssues',
+          {
+            title,
+            description: null,
+            status: backlogId,
+            priority: 0,
+            number: newNumber,
+            assignee,
+            estimation,
+            remainingTime: estimation,
+            reportedTime: 0,
+            reports: 0,
+            childInfo: [],
+            parents: [{
+              parentId: issue._id,
+              parentTitle: issue.title,
+              identifier: issue.identifier,
+              space: issue.space
+            }],
+            identifier: 'ENG-' + newNumber,
+            kind: 'tracker:taskTypes:Issue',
+            dueDate: null,
+            milestone: null,
+            component: null,
+            relations: [],
+            subIssues: 0,
+            comments: 0,
+            rank: ''
+          }
+        )
+
+        await client.updateDoc(tracker.class.Project, issue.space, issue.space, {
+          sequence: newNumber
+        })
+
+        console.log('✓ Created ENG-' + newNumber + ' "' + title + '" under ' + issue.identifier + (estimation ? ' (' + estimation + ' pts)' : ''))
+        break
+      }
+
       default:
         console.error('Unknown command:', command)
-        console.error('Commands: dev-start, pr-created, pr-merged, in-review, done, qa-start, released, log-time, estimate, comment')
+        console.error('Commands: dev-start, pr-created, pr-merged, in-review, done, qa-start, released, log-time, estimate, create-sub, comment')
         process.exit(1)
     }
   } finally {
