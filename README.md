@@ -1,8 +1,8 @@
 # huly-dash
 
-Terminal analytics dashboard and git automation for [Huly](https://huly.app) workspaces.
+Terminal analytics dashboard and issue management CLI for [Huly](https://huly.app) workspaces.
 
-Built to give engineering teams visibility into velocity, workload, pipeline health, and developer quality — all from the command line. Includes git hooks that automatically update Huly issues as you code.
+Two tools: **`huly-dash`** for team analytics and **`huly`** for issue management. Includes git hooks that automatically update Huly issues as you code.
 
 ## What It Does
 
@@ -38,23 +38,47 @@ huly-dash all  ·  workspace: tranzact  ·  2026-04-01
 
 | Command | What it shows |
 |---------|--------------|
-| `velocity` | Story points closed per week with category splits (features/bugs/tech-debt) |
+| `velocity` | Story points closed per week with category splits (features/bugs/tech-debt) and optional pause-aware effective velocity |
 | `workload` | Open issue points per developer with overload/urgent/overdue flags |
 | `milestones` | Milestone progress by points with burn rate and at-risk detection |
-| `pipeline` | Where issues sit in Dev → QA → UAT → Release with bottleneck detection |
-| `breakdown` | Effort allocation by category — points vs count side by side |
-| `quality` | Developer first-pass QA rate, bug yield, and rework ratio |
+| `pipeline` | Where issues sit in Dev → QA → UAT → Release with bottleneck and schedule slip detection |
+| `breakdown` | Effort allocation by category — points vs count side by side (open backlog + recently closed) |
+| `quality` | Developer first-pass QA rate, bug yield, and rework ratio (pts spent on bug fixes vs original task) |
 | `all` | Everything above in one view |
 
-### Git Automation (`huly`)
+### Issue Management (`huly`)
+
+Create issues, update status, log time, and manage your workflow from the terminal:
+
+```bash
+# Create a sub-issue under a parent
+node src/huly.js create-sub ENG-14826 "Fix validation logic" --estimate 4 --assignee me
+
+# Status transitions
+node src/huly.js dev-start ENG-14826      # → In Progress + set Dev Start
+node src/huly.js in-review ENG-14826      # → In Review (ready for QA)
+node src/huly.js done ENG-14826           # → Done
+node src/huly.js released ENG-14826       # Set Release Actual date
+
+# Time tracking
+node src/huly.js log-time ENG-14826 2.5 "Code review and testing"
+node src/huly.js estimate ENG-14826 8     # Set story points
+
+# Comments
+node src/huly.js comment ENG-14826 "Deployed to staging"
+```
+
+### Git Automation (hooks)
 
 Automatically updates Huly issues as you work:
 
 ```
 First commit on branch  → Issue moves to In Progress, Dev Start date set
 gh pr create            → Comment added to issue with PR link
-PR merged               → Issue moves to In Review (QA), Dev End date set, dev time logged
+PR merged               → Issue moves to In Review (QA), Dev End date set, dev time auto-logged
 ```
+
+Works with both local merges and GitHub web UI merges (via GitHub Action).
 
 ## Setup
 
@@ -67,7 +91,7 @@ PR merged               → Issue moves to In Review (QA), Dev End date set, dev
 ### Install
 
 ```bash
-git clone <this-repo>
+git clone https://github.com/fcbtech/huly-dash.git
 cd huly-dash
 cp .env.example .env
 ```
@@ -135,36 +159,64 @@ node huly-dash.js all
 # All views including quality (slower — queries per-issue history)
 node huly-dash.js all --quality
 
+# Include pause-aware effective velocity
+node huly-dash.js all --pauses
+
 # Individual views
 node huly-dash.js velocity --days 14
+node huly-dash.js velocity --pauses       # with effective velocity
 node huly-dash.js workload
 node huly-dash.js milestones
 node huly-dash.js pipeline
 node huly-dash.js breakdown --days 30
 node huly-dash.js quality --days 30
-
-# Include pause-aware effective velocity
-node huly-dash.js velocity --pauses
 ```
 
-### Manual Issue Updates
+### Issue Management
 
 ```bash
+# Create sub-issues
+node src/huly.js create-sub ENG-14826 "Fix validation logic" --estimate 4
+node src/huly.js create-sub ENG-14826 "Write tests" --estimate 2 --assignee me
+
 # Status changes
-node src/huly.js dev-start ENG-14826
+node src/huly.js dev-start ENG-14826      # → In Progress + Dev Start date
 node src/huly.js pr-created ENG-14826 --pr https://github.com/org/repo/pull/123
 node src/huly.js pr-merged ENG-14826 --pr https://github.com/org/repo/pull/123
-node src/huly.js in-review ENG-14826
-node src/huly.js done ENG-14826
-node src/huly.js qa-start ENG-14826
-node src/huly.js released ENG-14826
+node src/huly.js in-review ENG-14826      # → In Review (for QA/UAT)
+node src/huly.js done ENG-14826           # → Done
+node src/huly.js qa-start ENG-14826       # Set QA Start date
+node src/huly.js released ENG-14826       # Set Release Actual date
 
 # Time tracking
 node src/huly.js log-time ENG-14826 2.5 "Code review and testing"
-node src/huly.js estimate ENG-14826 8
+node src/huly.js estimate ENG-14826 8     # Set story points + remaining time
 
 # Comments
 node src/huly.js comment ENG-14826 "Deployed to staging"
+```
+
+### PR Workflow Commands
+
+These are used by git hooks but can also be run manually:
+
+| Command | What it does |
+|---------|-------------|
+| `dev-start` | Moves to In Progress, sets Dev Start date (if not already set) |
+| `pr-created` | Adds PR link as comment on the issue |
+| `pr-merged` | Moves to In Review, sets Dev End Actual, auto-logs dev time (hours between Dev Start and merge) |
+
+## Automation Flow
+
+```
+Developer Workflow                Huly Update (automatic)
+────────────────────────────────────────────────────────────
+git checkout -b ENG-1234/feat     (nothing yet)
+git commit (first on branch)      → In Progress + Dev Start
+...more commits...                (no duplicate triggers)
+gh pr create                      → PR link comment on issue
+PR merged (local or GitHub web)   → In Review + Dev End + dev time auto-logged
+QA passes                         → (manual) huly done / released
 ```
 
 ## Customizing for Your Workspace
@@ -212,33 +264,16 @@ run().catch(console.error)
 | `src/fetchers/tags.js` → `TAG_CATEGORIES` | Tag names for categorization | Check your workspace's tags in Huly UI |
 | `.github/workflows/huly-sync.yml` | Status + custom field IDs | Same as above |
 
-## Automation Flow
-
-```
-Developer Workflow                Huly Update (automatic)
-────────────────────────────────────────────────────────────
-git checkout -b ENG-1234/feat     (nothing yet)
-git commit                        → In Progress + Dev Start
-...more commits...                (no duplicate triggers)
-gh pr create                      → PR link comment on issue
-PR merged (local or GitHub web)   → In Review + Dev End + time logged
-QA passes                         → (manual) done / released
-```
-
-## Why Yarn?
-
-The `@hcengineering` packages are published with `workspace:` protocol in their dependency specs (a pnpm/yarn monorepo convention). npm cannot resolve these even with `overrides`. Yarn's `resolutions` field handles this correctly. Do not switch to npm — it will fail to install.
-
 ## Project Structure
 
 ```
-huly-dash.js              CLI entry point
+huly-dash.js              Dashboard CLI entry point
 src/
+  huly.js                 Issue management CLI
   connection.js           Huly API connection
-  huly.js          Issue update CLI (used by hooks)
   fetchers/               Data fetchers (return plain objects)
-    tags.js               Shared tag resolution
-    velocity.js           Velocity with category splits
+    tags.js               Shared tag resolution + categorization
+    velocity.js           Velocity with category splits + pause awareness
     workload.js           Workload per developer
     milestones.js         Milestone health
     pipeline.js           SDLC pipeline stages
@@ -251,9 +286,15 @@ hooks/
   post-merge              Merge to main → In Review
   gh-huly-wrapper.sh      gh pr create wrapper
   install.sh              Hook installer
+.github/workflows/
+  huly-sync.yml           GitHub Action for web PR merges
 docs/
   huly-tracking-guidelines.md   Team guidelines for Huly data quality
 ```
+
+## Why Yarn?
+
+The `@hcengineering` packages are published with `workspace:` protocol in their dependency specs (a pnpm/yarn monorepo convention). npm cannot resolve these even with `overrides`. Yarn's `resolutions` field handles this correctly. Do not switch to npm — it will fail to install.
 
 ## License
 
