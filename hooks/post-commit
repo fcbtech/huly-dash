@@ -2,7 +2,7 @@
 # Git post-commit hook: on the first commit of a branch with ENG-XXXX,
 # sets Dev Start and moves issue to In Progress on Huly.
 
-HULY_UPDATE="${HULY_DASH_DIR:-$HOME/Projects/agents/huly}/src/huly-update.js"
+HULY="${HULY_DASH_DIR:-$HOME/Projects/agents/huly}/src/huly.js"
 
 branch=$(git symbolic-ref --short HEAD 2>/dev/null)
 if [[ -z "$branch" || "$branch" == "main" || "$branch" == "master" ]]; then
@@ -24,5 +24,5 @@ if [[ "$commits_ahead" != "1" ]]; then
 fi
 
 echo "🔗 Huly: setting $issue → In Progress (Dev Start)"
-node "$HULY_UPDATE" dev-start "$issue" 2>/dev/null &
+node "$HULY" dev-start "$issue" 2>/dev/null &
 exit 0

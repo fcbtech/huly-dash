@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 
 /**
- * CLI tool to update Huly issues from git hooks and shell scripts.
+ * CLI tool for managing Huly issues from the terminal and git hooks.
  *
  * Usage:
- *   node huly-update.js dev-start ENG-14826
- *   node huly-update.js in-review ENG-14826 --pr "https://github.com/fcbtech/tranzact-v2/pull/5060"
- *   node huly-update.js done ENG-14826
- *   node huly-update.js comment ENG-14826 "Deployed to staging"
+ *   node huly.js dev-start ENG-14826
+ *   node huly.js pr-merged ENG-14826 --pr "https://github.com/org/repo/pull/123"
+ *   node huly.js create-sub ENG-14826 "Sub-task title" --estimate 4
+ *   node huly.js log-time ENG-14826 2.5 "description"
+ *   node huly.js comment ENG-14826 "Deployed to staging"
  */
 
 if (!globalThis.fetch) {
@@ -51,8 +52,8 @@ async function main () {
   const issueRef = args[1] // e.g. "ENG-14826"
 
   if (!command || !issueRef) {
-    console.error('Usage: huly-update <command> <ENG-XXXX> [options]')
-    console.error('Commands: dev-start, pr-created, pr-merged, in-review, done, qa-start, released, comment')
+    console.error('Usage: huly <command> <ENG-XXXX> [options]')
+    console.error('Commands: dev-start, pr-created, pr-merged, in-review, done, qa-start, released, log-time, estimate, create-sub, comment')
     process.exit(1)
   }
 
