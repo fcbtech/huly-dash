@@ -51,15 +51,9 @@ async function main () {
   const command = args[0]
   const issueRef = args[1] // e.g. "ENG-14826"
 
-  if (!command || !issueRef) {
-    console.error('Usage: huly <command> <ENG-XXXX> [options]')
-    console.error('Commands: dev-start, pr-created, pr-merged, in-review, done, qa-start, released, log-time, estimate, create-sub, comment')
-    process.exit(1)
-  }
-
-  const issueNumber = parseInt(issueRef.replace(/^ENG-/i, ''), 10)
-  if (isNaN(issueNumber)) {
-    console.error('Invalid issue reference:', issueRef)
+  if (!command) {
+    console.error('Usage: huly <command> [ENG-XXXX] [options]')
+    console.error('Commands: create, create-sub, dev-start, pr-created, pr-merged, in-review, done, qa-start, released, log-time, estimate, comment')
     process.exit(1)
   }
 
@@ -71,6 +65,24 @@ async function main () {
   const client = await connect(url, authOptions)
 
   try {
+    // Commands that don't require an existing issue
+    if (command === 'create') {
+      await handleCreate(client, args.slice(1))
+      return
+    }
+
+    // All other commands require an issue reference
+    if (!issueRef) {
+      console.error('Usage: huly ' + command + ' <ENG-XXXX> [options]')
+      process.exit(1)
+    }
+
+    const issueNumber = parseInt(issueRef.replace(/^ENG-/i, ''), 10)
+    if (isNaN(issueNumber)) {
+      console.error('Invalid issue reference:', issueRef)
+      process.exit(1)
+    }
+
     const issues = await client.findAll(tracker.class.Issue, { number: issueNumber })
     if (issues.length === 0) {
       console.error('Issue ENG-' + issueNumber + ' not found')
@@ -306,12 +318,116 @@ async function main () {
 
       default:
         console.error('Unknown command:', command)
-        console.error('Commands: dev-start, pr-created, pr-merged, in-review, done, qa-start, released, log-time, estimate, create-sub, comment')
+        console.error('Commands: create, create-sub, dev-start, pr-created, pr-merged, in-review, done, qa-start, released, log-time, estimate, comment')
         process.exit(1)
     }
   } finally {
     await client.close()
   }
+}
+
+/**
+ * Create a new top-level issue.
+ * Usage: huly create "Title" [--estimate N] [--assignee me] [--priority urgent|high|medium|low] [--tag tag-name]
+ */
+async function handleCreate (client, args) {
+  const title = args[0]
+  if (!title || title.startsWith('--')) {
+    console.error('Usage: huly create "title" [--estimate N] [--assignee me] [--priority urgent|high|medium|low] [--tag tag-name]')
+    process.exit(1)
+  }
+
+  const estIdx = args.indexOf('--estimate')
+  const estimation = estIdx !== -1 ? parseFloat(args[estIdx + 1]) || 0 : 0
+
+  const priorityMap = { urgent: 1, high: 2, medium: 3, low: 4 }
+  const priIdx = args.indexOf('--priority')
+  const priority = priIdx !== -1 ? (priorityMap[args[priIdx + 1]] || 0) : 0
+
+  const assignIdx = args.indexOf('--assignee')
+  let assignee = null
+  if (assignIdx !== -1 && args[assignIdx + 1] === 'me') {
+    const account = await client.getAccount()
+    assignee = await resolveEmployee(client, account)
+  }
+
+  // Get project
+  const projects = await client.findAll(tracker.class.Project, {})
+  const project = projects[0]
+  const newNumber = project.sequence + 1
+
+  const statuses = await client.findAll(core.class.Status, {})
+  const backlogId = statuses.find((s) => s.name === 'Backlog' && s.ofAttribute === 'tracker:attribute:IssueStatus')?._id
+
+  await client.addCollection(
+    tracker.class.Issue,
+    project._id,
+    'tracker:ids:NoParent',
+    tracker.class.Issue,
+    'subIssues',
+    {
+      title,
+      description: null,
+      status: backlogId,
+      priority,
+      number: newNumber,
+      assignee,
+      estimation,
+      remainingTime: estimation,
+      reportedTime: 0,
+      reports: 0,
+      childInfo: [],
+      parents: [],
+      identifier: 'ENG-' + newNumber,
+      kind: 'tracker:taskTypes:Issue',
+      dueDate: null,
+      milestone: null,
+      component: null,
+      relations: [],
+      subIssues: 0,
+      comments: 0,
+      rank: ''
+    }
+  )
+
+  await client.updateDoc(tracker.class.Project, project._id, project._id, {
+    sequence: newNumber
+  })
+
+  // Add tag if specified
+  const tagIdx = args.indexOf('--tag')
+  if (tagIdx !== -1 && args[tagIdx + 1]) {
+    const tags = require('@hcengineering/tags').default
+    const tagElements = await client.findAll(tags.class.TagElement, {})
+    const tagEl = tagElements.find((t) => t.title === args[tagIdx + 1])
+    if (tagEl) {
+      const allIssues = await client.findAll(tracker.class.Issue, { number: newNumber })
+      if (allIssues.length > 0) {
+        await client.addCollection(
+          tags.class.TagReference,
+          project._id,
+          allIssues[0]._id,
+          tracker.class.Issue,
+          'labels',
+          {
+            tag: tagEl._id,
+            title: tagEl.title,
+            color: tagEl.color
+          }
+        )
+      }
+    } else {
+      console.error('  Warning: tag "' + args[tagIdx + 1] + '" not found, skipping')
+    }
+  }
+
+  const parts = []
+  if (estimation) parts.push(estimation + ' pts')
+  if (priority) parts.push(Object.keys(priorityMap).find((k) => priorityMap[k] === priority))
+  if (assignee) parts.push('assigned to me')
+  const suffix = parts.length > 0 ? ' (' + parts.join(', ') + ')' : ''
+
+  console.log('✓ Created ENG-' + newNumber + ' "' + title + '"' + suffix)
 }
 
 async function resolveEmployee (client, account) {
