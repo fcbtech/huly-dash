@@ -1,0 +1,24 @@
+src/huly.js
+  f677611835680eb7 362,365-367,389
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.5",
+  "base_commit_sha": "7b0fab14a49af23020e93baa1877c911683c1800",
+  "prompts": {
+    "f677611835680eb7": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "16386bc8-0235-4caf-b440-b24b6532a77d",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "Suneet",
+      "messages": [],
+      "total_additions": 5,
+      "total_deletions": 5,
+      "accepted_lines": 10,
+      "overriden_lines": 2,
+      "messages_url": "https://usegitai.com/cas/716ce937672fb6e1103b83c1ae5698f4d18e6ab397ebcabbdb74c2b5576e44b7"
+    }
+  }
+}
