@@ -6,7 +6,7 @@ import tracker, {
 } from '@hcengineering/tracker'
 import contact, { type Person } from '@hcengineering/contact'
 import tags from '@hcengineering/tags'
-import { type Ref, type Doc, type DocumentUpdate, SortingOrder } from '@hcengineering/core'
+import { generateId, type Ref, type Doc, type DocumentUpdate, SortingOrder } from '@hcengineering/core'
 import {
   buildStatusMap,
   categoryLabel,
@@ -182,11 +182,21 @@ export async function getIssue (
   const projects = await client.findAll(tracker.class.Project, {})
   const project = projects.find((p) => p._id === issue.space)
 
+  const description = issue.description
+    ? await client.fetchMarkup(
+        tracker.class.Issue,
+        issue._id as Ref<Doc>,
+        'description',
+        issue.description,
+        'markdown'
+      )
+    : null
+
   const row = toIssueRow(issue, statusMap, employeeMap, milestoneMap)
 
   return {
     ...row,
-    description: null, // description is a MarkupBlobRef, not inline text
+    description,
     project: project?.identifier || 'Unknown',
     number: issue.number
   }
@@ -247,8 +257,13 @@ export async function createIssue (
   // Resolve due date
   const dueDate = opts.due ? new Date(opts.due).getTime() : null
 
+  const issueId = generateId() as Ref<Issue>
+  const descriptionRef = opts.description
+    ? await client.uploadMarkup(tracker.class.Issue, issueId as Ref<Doc>, 'description', opts.description, 'markdown')
+    : null
+
   // Create the issue using addCollection (Issue extends AttachedDoc)
-  const issueId = await client.addCollection(
+  await client.addCollection(
     tracker.class.Issue,
     project._id,
     project._id as unknown as Ref<Doc>,
@@ -256,7 +271,7 @@ export async function createIssue (
     'issues',
     {
       title: opts.title,
-      description: null as any,
+      description: descriptionRef,
       status: project.defaultIssueStatus,
       priority,
       assignee: assigneeRef,
@@ -273,7 +288,8 @@ export async function createIssue (
       number: (project.sequence ?? 0) + 1,
       identifier: `${project.identifier}-${(project.sequence ?? 0) + 1}`,
       rank: '' as any
-    } as any
+    } as any,
+    issueId
   )
 
   // Re-fetch to get the server-assigned identifier
@@ -283,6 +299,7 @@ export async function createIssue (
 
 export interface UpdateIssueOptions {
   title?: string
+  description?: string
   assignee?: string
   priority?: string
   status?: string
@@ -306,6 +323,12 @@ export async function updateIssue (
   const updates: Record<string, any> = {}
 
   if (opts.title !== undefined) updates.title = opts.title
+
+  if (opts.description !== undefined) {
+    updates.description = opts.description
+      ? await client.uploadMarkup(tracker.class.Issue, issue._id as Ref<Doc>, 'description', opts.description, 'markdown')
+      : null
+  }
 
   if (opts.assignee !== undefined) {
     const ref = await resolveEmployee(client, opts.assignee)

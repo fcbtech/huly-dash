@@ -98,6 +98,7 @@ export function registerIssueCommand (program: Command): void {
     .command('update <identifier>')
     .description('Update an existing issue')
     .option('--title <text>', 'New title')
+    .option('--description <text>', 'New description (markdown supported)')
     .option('--assignee <name>', 'New assignee')
     .option('--priority <level>', 'New priority')
     .option('--status <name>', 'New status')
@@ -110,6 +111,7 @@ export function registerIssueCommand (program: Command): void {
       try {
         await updateIssue(client, identifier, {
           title: opts.title,
+          description: opts.description,
           assignee: opts.assignee,
           priority: opts.priority,
           status: opts.status,

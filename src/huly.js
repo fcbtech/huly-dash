@@ -21,6 +21,7 @@ require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') })
 
 const tracker = require('@hcengineering/tracker').default
 const core = require('@hcengineering/core').default
+const { generateId } = require('@hcengineering/core')
 const chunter = require('@hcengineering/chunter').default
 
 const CUSTOM_FIELDS = {
@@ -328,14 +329,17 @@ async function main () {
 
 /**
  * Create a new top-level issue.
- * Usage: huly create "Title" [--estimate N] [--assignee me] [--priority urgent|high|medium|low] [--tag tag-name]
+ * Usage: huly create "Title" [--description text] [--estimate N] [--assignee me] [--priority urgent|high|medium|low] [--tag tag-name]
  */
 async function handleCreate (client, args) {
   const title = args[0]
   if (!title || title.startsWith('--')) {
-    console.error('Usage: huly create "title" [--estimate N] [--assignee me] [--priority urgent|high|medium|low] [--tag tag-name]')
+    console.error('Usage: huly create "title" [--description text] [--estimate N] [--assignee me] [--priority urgent|high|medium|low] [--tag tag-name]')
     process.exit(1)
   }
+
+  const descIdx = args.indexOf('--description')
+  const description = descIdx !== -1 ? args[descIdx + 1] || '' : ''
 
   const estIdx = args.indexOf('--estimate')
   const estimation = estIdx !== -1 ? parseFloat(args[estIdx + 1]) || 0 : 0
@@ -355,6 +359,10 @@ async function handleCreate (client, args) {
   const projects = await client.findAll(tracker.class.Project, {})
   const project = projects[0]
   const newNumber = project.sequence + 1
+  const issueId = generateId()
+  const descriptionRef = description
+    ? await client.uploadMarkup(tracker.class.Issue, issueId, 'description', description, 'markdown')
+    : null
 
   const statuses = await client.findAll(core.class.Status, {})
   const backlogId = statuses.find((s) => s.name === 'Backlog' && s.ofAttribute === 'tracker:attribute:IssueStatus')?._id
@@ -367,7 +375,7 @@ async function handleCreate (client, args) {
     'subIssues',
     {
       title,
-      description: null,
+      description: descriptionRef,
       status: backlogId,
       priority,
       number: newNumber,
@@ -387,7 +395,8 @@ async function handleCreate (client, args) {
       subIssues: 0,
       comments: 0,
       rank: ''
-    }
+    },
+    issueId
   )
 
   await client.updateDoc(tracker.class.Project, project._id, project._id, {

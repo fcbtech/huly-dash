@@ -79,6 +79,10 @@ export function formatIssueDetail (issue: IssueDetail): string {
     `  Created:    ${issue.createdOn || chalk.dim('unknown')}`
   ]
 
+  if (issue.description) {
+    lines.push('', '  Description:', issue.description)
+  }
+
   return lines.join('\n')
 }
 
