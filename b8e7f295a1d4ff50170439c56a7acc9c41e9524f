@@ -1,0 +1,44 @@
+src/commands/issue.ts
+  f24308506f5d0891 101,114
+src/huly.js
+  f24308506f5d0891 24,332,337,341-343,362-365,378,398-399
+src/formatters/table.ts
+  f24308506f5d0891 82-85
+src/lib/issues.ts
+  f24308506f5d0891 9,185-194,199,260-264,266,274,291-292,302,327-331
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.2.8",
+  "base_commit_sha": "b8e7f295a1d4ff50170439c56a7acc9c41e9524f",
+  "prompts": {
+    "b048fef3528d9a1a": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "08710f83-423e-4d1e-849a-c6de1d6495ac",
+        "model": "claude-opus-4-6"
+      },
+      "human_author": "pratik-dev-25",
+      "messages": [],
+      "total_additions": 161,
+      "total_deletions": 46,
+      "accepted_lines": 0,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/7d74507308e8c3d5be774c1aba94936635f9cfb525dcfc93d469abd77769c707"
+    },
+    "f24308506f5d0891": {
+      "agent_id": {
+        "tool": "opencode",
+        "id": "ses_289dd51d7ffeCidPoiRw6KRdow",
+        "model": "openai/gpt-5.4"
+      },
+      "human_author": "pratik-dev-25",
+      "messages": [],
+      "total_additions": 63,
+      "total_deletions": 25,
+      "accepted_lines": 53,
+      "overriden_lines": 0,
+      "messages_url": "https://usegitai.com/cas/07eb687d7e1d1d1d2b7dc565666e566e9eeb7c935cf8a9f45fe2b09a82d09534"
+    }
+  }
+}
