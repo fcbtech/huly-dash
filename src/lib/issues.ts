@@ -450,7 +450,8 @@ async function resolveEmployee (
   client: PlatformClient,
   name: string
 ): Promise<Ref<Person> | null> {
-  const employees = await client.findAll(contact.class.Person, { active: true })
+  // Query without active filter — some members may not have active:true set
+  const employees = await client.findAll(contact.class.Person, {})
   const lower = name.toLowerCase()
   const match = employees.find((e) => {
     const formatted = formatName(e.name)?.toLowerCase() || ''
