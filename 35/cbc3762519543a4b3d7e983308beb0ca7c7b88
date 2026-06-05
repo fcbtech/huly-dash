@@ -1,0 +1,52 @@
+src/commands/issue.ts
+  s_b6c7a755bcd0f0::t_d1cb92d46f7fca 1
+  s_b6c7a755bcd0f0::t_38f2d50dfa8deb 64,67-69,80-82,86-87
+  s_b6c7a755bcd0f0::t_9dab80cb453797 109,120-122,125
+src/connection.js
+  s_c2b5c1127ff2e8::t_35fec54590a475 5-6
+src/lib/issues.ts
+  s_b6c7a755bcd0f0::t_6ab445dbe26998 1
+  s_b6c7a755bcd0f0::t_7b068e7d6d15b5 281-311,322-324,327,337
+  s_b6c7a755bcd0f0::t_604e8f3b9326c3 436
+  s_b6c7a755bcd0f0::t_62a07cd27e4bb0 10-12
+  s_b6c7a755bcd0f0::t_6596870d12e7c8 382,387-401
+  s_b6c7a755bcd0f0::t_f9a519915d9fea 444
+  s_b6c7a755bcd0f0::t_70d5b37204ec50 217-219
+  s_1560c81643e51b::t_09d8386a416ad1 235-247
+  s_1560c81643e51b::t_be300f691c534d 525-528
+  s_1560c81643e51b::t_3d6876cd21c93b 8
+  s_1560c81643e51b::t_5e8436271b9d7f 340
+  s_1560c81643e51b::t_17931ae3022657 314-318,341-342,348-351
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.3",
+  "base_commit_sha": "35cbc3762519543a4b3d7e983308beb0ca7c7b88",
+  "prompts": {},
+  "sessions": {
+    "s_1560c81643e51b": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "9a2571c0-e9dc-4a22-a416-4a58aa96965a",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "himanshu.mishra <himanshu.mishra@letstranzact.com>"
+    },
+    "s_b6c7a755bcd0f0": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "315421fd-75f5-4662-8568-6ceeb8ecbebc",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "himanshu.mishra <himanshu.mishra@letstranzact.com>"
+    },
+    "s_c2b5c1127ff2e8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "0a966580-ae5b-4993-a44d-696e23d0e20b",
+        "model": "claude-opus-4-8"
+      },
+      "human_author": "himanshu.mishra <himanshu.mishra@letstranzact.com>"
+    }
+  }
+}
