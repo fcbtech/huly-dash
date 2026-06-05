@@ -1,12 +1,15 @@
-import { type PlatformClient } from '@hcengineering/api-client'
+import { type PlatformClient, markdown } from '@hcengineering/api-client'
 import tracker, {
   type Issue,
   type Milestone,
   IssuePriority
 } from '@hcengineering/tracker'
 import contact, { type Person } from '@hcengineering/contact'
+import task from '@hcengineering/task'
 import tags from '@hcengineering/tags'
-import { generateId, type Ref, type Doc, type DocumentUpdate, SortingOrder } from '@hcengineering/core'
+import { generateId, makeCollabId, type Ref, type Doc, type DocumentUpdate, SortingOrder } from '@hcengineering/core'
+import { jsonToMarkup } from '@hcengineering/text'
+import { markdownToMarkup } from '@hcengineering/text-markdown'
 import {
   buildStatusMap,
   categoryLabel,
@@ -211,6 +214,9 @@ export interface CreateIssueOptions {
   estimation?: number
   milestone?: string
   due?: string
+  /** Parent issue identifier (e.g. ENG-16999). When set, the new issue is
+   *  created as a sub-issue attached to the parent instead of the project. */
+  parent?: string
 }
 
 export async function createIssue (
@@ -224,6 +230,19 @@ export async function createIssue (
   )
   if (!project) {
     throw new Error(`Project "${opts.project}" not found.`)
+  }
+
+  // Resolve the Issue task type for this project's type.
+  // `kind` must reference a TaskType (e.g. tracker:taskTypes:Issue), NOT the
+  // ProjectType — otherwise Huly can't resolve the issue's status set and the
+  // status control/filter won't render in the UI.
+  const projectType = await client.findOne(task.class.ProjectType, { _id: project.type })
+  const taskTypes = projectType?.tasks?.length
+    ? await client.findAll(task.class.TaskType, { _id: { $in: projectType.tasks } })
+    : []
+  const issueTaskType = taskTypes.find((t) => t.ofClass === tracker.class.Issue)
+  if (!issueTaskType) {
+    throw new Error(`Could not resolve an Issue task type for project "${opts.project}".`)
   }
 
   // Resolve assignee
@@ -258,20 +277,54 @@ export async function createIssue (
   const dueDate = opts.due ? new Date(opts.due).getTime() : null
 
   const issueId = generateId() as Ref<Issue>
-  const descriptionRef = opts.description
-    ? await client.uploadMarkup(tracker.class.Issue, issueId as Ref<Doc>, 'description', opts.description, 'markdown')
-    : null
+
+  // When --parent is given, attach as a sub-issue of that parent; otherwise
+  // attach directly to the project. The `parents` chain links up to the root.
+  let attachedTo: Ref<Doc> = project._id as unknown as Ref<Doc>
+  let attachedToClass = tracker.class.Project as unknown as Ref<any>
+  let collection = 'issues'
+  let parents: any[] = []
+  if (opts.parent) {
+    const parentIssue = await client.findOne(tracker.class.Issue, {
+      identifier: opts.parent.toUpperCase()
+    })
+    if (!parentIssue) {
+      throw new Error(`Parent issue "${opts.parent}" not found.`)
+    }
+    attachedTo = parentIssue._id as unknown as Ref<Doc>
+    attachedToClass = tracker.class.Issue as unknown as Ref<any>
+    collection = 'subIssues'
+    parents = [
+      {
+        parentId: parentIssue._id,
+        parentTitle: parentIssue.title,
+        identifier: parentIssue.identifier,
+        space: parentIssue.space
+      },
+      ...((parentIssue as any).parents ?? [])
+    ]
+  }
+
+  // Markup fields (description) must be passed as a MarkupContent value so the
+  // client uploads + links the content. Storing a bare uploadMarkup ref via
+  // addCollection/updateDoc does NOT seed the collaborative doc (reads back empty).
+  const description = opts.description ? markdown(opts.description) : null
 
   // Create the issue using addCollection (Issue extends AttachedDoc)
+  // Next issue number comes from the project sequence. The server does NOT
+  // auto-assign it, so we must compute it AND persist the bumped sequence
+  // below — otherwise the next create reuses this number and collides.
+  const newNumber = (project.sequence ?? 0) + 1
+
   await client.addCollection(
     tracker.class.Issue,
     project._id,
-    project._id as unknown as Ref<Doc>,
-    tracker.class.Project as unknown as Ref<any>,
-    'issues',
+    attachedTo,
+    attachedToClass,
+    collection,
     {
       title: opts.title,
-      description: descriptionRef,
+      description,
       status: project.defaultIssueStatus,
       priority,
       assignee: assigneeRef,
@@ -281,16 +334,21 @@ export async function createIssue (
       remainingTime: 0,
       reportedTime: 0,
       childInfo: [],
-      parents: [],
+      parents,
       relations: [],
       dueDate,
-      kind: project.type as any,
-      number: (project.sequence ?? 0) + 1,
-      identifier: `${project.identifier}-${(project.sequence ?? 0) + 1}`,
+      kind: issueTaskType._id as any,
+      number: newNumber,
+      identifier: `${project.identifier}-${newNumber}`,
       rank: '' as any
     } as any,
     issueId
   )
+
+  // Persist the bumped sequence so the next issue gets a fresh number.
+  await client.updateDoc(tracker.class.Project, project._id, project._id, {
+    sequence: newNumber
+  })
 
   // Re-fetch to get the server-assigned identifier
   const created = await client.findOne(tracker.class.Issue, { _id: issueId as any })
@@ -321,13 +379,26 @@ export async function updateIssue (
   }
 
   const updates: Record<string, any> = {}
+  let didInPlaceMarkup = false
 
   if (opts.title !== undefined) updates.title = opts.title
 
   if (opts.description !== undefined) {
-    updates.description = opts.description
-      ? await client.uploadMarkup(tracker.class.Issue, issue._id as Ref<Doc>, 'description', opts.description, 'markdown')
-      : null
+    // The api-client only ever calls collaborator.createMarkup, which returns
+    // HTTP 500 when the field's collaborative doc already exists. So for an
+    // issue that already has a description we update the collab doc in place
+    // via collaborator.updateMarkup; only a fresh description goes through the
+    // create path (markdown()).
+    if (opts.description && (issue as any).description) {
+      const mk: any = (client as any).markup
+      const node = markdownToMarkup(opts.description, { refUrl: mk.refUrl, imageUrl: mk.imageUrl })
+      const markupStr = jsonToMarkup(node)
+      const collabId = makeCollabId(tracker.class.Issue, issue._id, 'description')
+      await mk.collaborator.updateMarkup(collabId, markupStr)
+      didInPlaceMarkup = true
+    } else {
+      updates.description = opts.description ? markdown(opts.description) : null
+    }
   }
 
   if (opts.assignee !== undefined) {
@@ -362,6 +433,7 @@ export async function updateIssue (
   }
 
   if (Object.keys(updates).length === 0) {
+    if (didInPlaceMarkup) return
     throw new Error('No update flags provided.')
   }
 
@@ -369,7 +441,7 @@ export async function updateIssue (
     tracker.class.Issue,
     issue.space,
     issue._id,
-    updates as DocumentUpdate<Issue>
+    updates as any
   )
 }
 
@@ -450,7 +522,10 @@ async function resolveEmployee (
   client: PlatformClient,
   name: string
 ): Promise<Ref<Person> | null> {
-  const employees = await client.findAll(contact.class.Person, { active: true })
+  // Don't filter on { active: true } — in this workspace no Person has the
+  // active flag set, so that filter matched nobody and broke --assignee for
+  // every user. Match across all persons instead.
+  const employees = await client.findAll(contact.class.Person, {})
   const lower = name.toLowerCase()
   const match = employees.find((e) => {
     const formatted = formatName(e.name)?.toLowerCase() || ''

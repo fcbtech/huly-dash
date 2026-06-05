@@ -1,3 +1,4 @@
+import { readFileSync } from 'fs'
 import { Command } from 'commander'
 import { requireAuth } from '../config/auth'
 import { createClient } from '../lib/client'
@@ -60,10 +61,12 @@ export function registerIssueCommand (program: Command): void {
 
   issue
     .command('create')
-    .description('Create a new issue')
+    .description('Create a new issue (use --parent to create a sub-issue)')
     .requiredOption('--title <title>', 'Issue title')
     .requiredOption('--project <id>', 'Project identifier')
-    .option('--description <text>', 'Issue description')
+    .option('--description <text>', 'Issue description (markdown)')
+    .option('--description-file <path>', 'Read description (markdown) from a file')
+    .option('--parent <id>', 'Parent issue identifier (creates a sub-issue, e.g. ENG-16999)')
     .option('--assignee <name>', 'Assignee name')
     .option('--priority <level>', 'Priority (urgent/high/medium/low)')
     .option('--estimation <pts>', 'Story points')
@@ -74,10 +77,14 @@ export function registerIssueCommand (program: Command): void {
       const config = requireAuth()
       const client = await createClient(config, program.opts())
       try {
+        const description = opts.descriptionFile
+          ? readFileSync(opts.descriptionFile, 'utf8')
+          : opts.description
         const identifier = await createIssue(client, {
           title: opts.title,
           project: opts.project,
-          description: opts.description,
+          description,
+          parent: opts.parent,
           assignee: opts.assignee,
           priority: opts.priority,
           estimation: opts.estimation ? parseInt(opts.estimation, 10) : undefined,
@@ -99,6 +106,7 @@ export function registerIssueCommand (program: Command): void {
     .description('Update an existing issue')
     .option('--title <text>', 'New title')
     .option('--description <text>', 'New description (markdown supported)')
+    .option('--description-file <path>', 'Read new description (markdown) from a file')
     .option('--assignee <name>', 'New assignee')
     .option('--priority <level>', 'New priority')
     .option('--status <name>', 'New status')
@@ -109,9 +117,12 @@ export function registerIssueCommand (program: Command): void {
       const config = requireAuth()
       const client = await createClient(config, program.opts())
       try {
+        const description = opts.descriptionFile
+          ? readFileSync(opts.descriptionFile, 'utf8')
+          : opts.description
         await updateIssue(client, identifier, {
           title: opts.title,
-          description: opts.description,
+          description,
           assignee: opts.assignee,
           priority: opts.priority,
           status: opts.status,

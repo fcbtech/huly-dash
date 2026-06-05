@@ -2,7 +2,8 @@ if (!globalThis.fetch) {
   globalThis.fetch = require('node-fetch')
 }
 const { connect } = require('@hcengineering/api-client')
-require('dotenv').config()
+const path = require('path')
+require('dotenv').config({ path: path.resolve(__dirname, '..', '.env') })
 
 async function createConnection (options = {}) {
   const url = options.url || process.env.HULY_URL || 'https://huly.app'
